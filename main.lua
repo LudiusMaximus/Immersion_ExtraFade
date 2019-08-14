@@ -32,11 +32,10 @@ end
 
 
 
-
 local gossipShowFrame = CreateFrame("Frame")
 gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
+gossipShowFrame:RegisterEvent("QUEST_DETAIL")
 gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
-
 
   ChatFrame1:SetIgnoreParentAlpha(true)
   ChatFrame1Tab:SetIgnoreParentAlpha(true)
@@ -86,6 +85,7 @@ end)
 
 local gossipClosedFrame = CreateFrame("Frame")
 gossipClosedFrame:RegisterEvent("GOSSIP_CLOSED")
+gossipClosedFrame:RegisterEvent("QUEST_FINISHED")
 gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
   -- Cancel hide timer if frames have not been hidden yet.
@@ -105,7 +105,6 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
   if DebuffFrame then DebuffFrame:Show() end
 
 
-
   StatusBarMod.bar.manager:SetIgnoreParentAlpha(false)
 
   if BT4Bar1 and BT4Bar1:GetAttribute("state-vis") ~= "hide" then BT4Bar1:Show() end
@@ -123,7 +122,6 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
   if BT4BarStanceBar and BT4BarStanceBar:GetAttribute("state-vis") ~= "hide" then BT4BarStanceBar:Show() end
   if BT4BarPetBar and BT4BarPetBar:GetAttribute("state-vis") ~= "hide" then BT4BarPetBar:Show() end
-
 
   -- Fade in the only half faded status bar.
   -- Store tempAlpha for OnEnter/OnLeave.
