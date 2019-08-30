@@ -7,24 +7,26 @@ local fadeOutTime = 0.2
 local fadeInTime = 0.5
 
 
-local StatusBarMod = Bartender4:GetModule("StatusTrackingBar")
-StatusBarMod:Enable()
-
-for _, frame in pairs(StatusBarMod.bar.manager.bars) do
+for _, frame in pairs({ReputationWatchBar, MainMenuExpBar}) do
 
   local originalEnter = frame:GetScript("OnEnter")
   local originalLeave = frame:GetScript("OnLeave")
 
   frame:SetScript("OnEnter", function()
     originalEnter(frame)
-    StatusBarMod.bar.manager.tempAlpha = StatusBarMod.bar.manager:GetAlpha()
-    StatusBarMod.bar.manager:SetAlpha(1)
+    ReputationWatchBar.tempAlpha = ReputationWatchBar:GetAlpha()
+    ReputationWatchBar:SetAlpha(1)
+    MainMenuExpBar.tempAlpha = MainMenuExpBar:GetAlpha()
+    MainMenuExpBar:SetAlpha(1)
   end )
 
   frame:SetScript("OnLeave", function()
     originalLeave(frame)
-    if (StatusBarMod.bar.manager.tempAlpha ~= nil) then
-      StatusBarMod.bar.manager:SetAlpha(StatusBarMod.bar.manager.tempAlpha)
+    if (ReputationWatchBar.tempAlpha ~= nil) then
+      ReputationWatchBar:SetAlpha(ReputationWatchBar.tempAlpha)
+    end
+    if (MainMenuExpBar.tempAlpha ~= nil) then
+      MainMenuExpBar:SetAlpha(MainMenuExpBar.tempAlpha)
     end
   end )
 
@@ -41,14 +43,15 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
   ChatFrame1Tab:SetIgnoreParentAlpha(true)
   ChatFrame1EditBox:SetIgnoreParentAlpha(true)
 
+  ReputationWatchBar:SetIgnoreParentAlpha(true)
+  MainMenuExpBar:SetIgnoreParentAlpha(true)
 
-  StatusBarMod.bar.manager:SetIgnoreParentAlpha(true)
 
-  local StatusBarMod = Bartender4:GetModule("StatusTrackingBar")
   -- Store tempAlpha for OnEnter/OnLeave.
-  StatusBarMod.bar.manager.tempAlpha = 0.25
-  UIFrameFadeOut(StatusBarMod.bar.manager, fadeOutTime, StatusBarMod.bar.manager:GetAlpha(), StatusBarMod.bar.manager.tempAlpha)
-
+  ReputationWatchBar.tempAlpha = 0.35
+  UIFrameFadeOut(ReputationWatchBar, fadeOutTime, ReputationWatchBar:GetAlpha(), ReputationWatchBar.tempAlpha)
+  MainMenuExpBar.tempAlpha = 0.35
+  UIFrameFadeOut(MainMenuExpBar, fadeOutTime, MainMenuExpBar:GetAlpha(), MainMenuExpBar.tempAlpha)
 
   -- Hide frames of which we want no mouseover tooltips while faded.
   L.frameHideTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
@@ -59,7 +62,6 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     if TargetFrame then TargetFrame:Hide() end
     if BuffFrame then BuffFrame:Hide() end
     if DebuffFrame then DebuffFrame:Hide() end
-
 
     if BT4Bar1 then BT4Bar1:Hide() end
     if BT4Bar2 then BT4Bar2:Hide() end
@@ -97,15 +99,15 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
   ChatFrame1Tab:SetIgnoreParentAlpha(false)
   ChatFrame1EditBox:SetIgnoreParentAlpha(false)
 
+  ReputationWatchBar:SetIgnoreParentAlpha(false)
+  MainMenuExpBar:SetIgnoreParentAlpha(false)
+
   if QuickJoinToastButton then QuickJoinToastButton:Show() end
   if PlayerFrame then PlayerFrame:Show() end
   if PetFrame then PetFrame:Show() end
   if TargetFrame then TargetFrame:Show() end
   if BuffFrame then BuffFrame:Show() end
   if DebuffFrame then DebuffFrame:Show() end
-
-
-  StatusBarMod.bar.manager:SetIgnoreParentAlpha(false)
 
   if BT4Bar1 and BT4Bar1:GetAttribute("state-vis") ~= "hide" then BT4Bar1:Show() end
   if BT4Bar2 and BT4Bar2:GetAttribute("state-vis") ~= "hide" then BT4Bar2:Show() end
@@ -125,7 +127,9 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
   -- Fade in the only half faded status bar.
   -- Store tempAlpha for OnEnter/OnLeave.
-  StatusBarMod.bar.manager.tempAlpha = 1
-  UIFrameFadeIn(StatusBarMod.bar.manager, fadeInTime, StatusBarMod.bar.manager:GetAlpha(), StatusBarMod.bar.manager.tempAlpha)
+  ReputationWatchBar.tempAlpha = 1
+  UIFrameFadeIn(ReputationWatchBar, fadeInTime, ReputationWatchBar:GetAlpha(), ReputationWatchBar.tempAlpha)
+  MainMenuExpBar.tempAlpha = 1
+  UIFrameFadeIn(MainMenuExpBar, fadeInTime, MainMenuExpBar:GetAlpha(), MainMenuExpBar.tempAlpha)
 
 end)
