@@ -44,7 +44,6 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
   StatusBarMod.bar.manager:SetIgnoreParentAlpha(true)
 
-  local StatusBarMod = Bartender4:GetModule("StatusTrackingBar")
   -- Store tempAlpha for OnEnter/OnLeave.
   StatusBarMod.bar.manager.tempAlpha = 0.25
   UIFrameFadeOut(StatusBarMod.bar.manager, fadeOutTime, StatusBarMod.bar.manager:GetAlpha(), StatusBarMod.bar.manager.tempAlpha)
