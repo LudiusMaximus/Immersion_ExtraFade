@@ -36,9 +36,10 @@ local bagnonInventoryOpen = false
 
 local gossipShowFrame = CreateFrame("Frame")
 gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
-gossipShowFrame:RegisterEvent("QUEST_DETAIL")
 gossipShowFrame:RegisterEvent("QUEST_COMPLETE")
+gossipShowFrame:RegisterEvent("QUEST_DETAIL")
 gossipShowFrame:RegisterEvent("QUEST_GREETING")
+gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
   ChatFrame1:SetIgnoreParentAlpha(true)
