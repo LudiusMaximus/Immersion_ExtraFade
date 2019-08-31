@@ -33,10 +33,13 @@ for _, frame in pairs({ReputationWatchBar, MainMenuExpBar}) do
 end
 
 
+local bagnonInventoryOpen = false
+
 
 local gossipShowFrame = CreateFrame("Frame")
 gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
 gossipShowFrame:RegisterEvent("QUEST_DETAIL")
+gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
   ChatFrame1:SetIgnoreParentAlpha(true)
@@ -53,6 +56,10 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
   MainMenuExpBar.tempAlpha = 0.35
   UIFrameFadeOut(MainMenuExpBar, fadeOutTime, MainMenuExpBar:GetAlpha(), MainMenuExpBar.tempAlpha)
 
+
+  if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
+  if L.frameShowTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameShowTimer) end
+  
   -- Hide frames of which we want no mouseover tooltips while faded.
   L.frameHideTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
 
@@ -79,6 +86,18 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     if BT4BarStanceBar then BT4BarStanceBar:Hide() end
     if BT4BarPetBar then BT4BarPetBar:Hide() end
 
+
+    -- Bagnon inventory is really odd.
+    -- It vanishes automatically with the UI fade, but the tooltips
+    -- are still active and you can even pick up items.
+    -- We therefore have to hide it explicitly here!
+    if BagnonFrameinventory and BagnonFrameinventory:IsShown() then
+      bagnonInventoryOpen = true
+      BagnonFrameinventory:Hide()
+    else
+      bagnonInventoryOpen = false
+    end
+
   end, fadeOutTime)
 
 end)
@@ -91,16 +110,28 @@ gossipClosedFrame:RegisterEvent("QUEST_FINISHED")
 gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
   -- Cancel hide timer if frames have not been hidden yet.
-  if L.frameHideTimer then
-    LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer)
+  if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
+  if L.frameShowTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameShowTimer) end
+  
+  L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
+    ChatFrame1:SetIgnoreParentAlpha(false)
+    ChatFrame1Tab:SetIgnoreParentAlpha(false)
+    ChatFrame1EditBox:SetIgnoreParentAlpha(false)
+
+    ReputationWatchBar:SetIgnoreParentAlpha(false)
+    MainMenuExpBar:SetIgnoreParentAlpha(false)
+ 
+  end, fadeInTime)
+  
+
+  -- If the Bagnon inventory was open before, we open it again.
+  -- Have to do this with this timer, otherwise it won't work...
+  if BagnonFrameinventory and bagnonInventoryOpen then
+    LibStub("AceTimer-3.0"):ScheduleTimer(function()
+      BagnonFrameinventory:Show()
+    end, 0)
   end
 
-  ChatFrame1:SetIgnoreParentAlpha(false)
-  ChatFrame1Tab:SetIgnoreParentAlpha(false)
-  ChatFrame1EditBox:SetIgnoreParentAlpha(false)
-
-  ReputationWatchBar:SetIgnoreParentAlpha(false)
-  MainMenuExpBar:SetIgnoreParentAlpha(false)
 
   if QuickJoinToastButton then QuickJoinToastButton:Show() end
   if PlayerFrame then PlayerFrame:Show() end
@@ -124,6 +155,7 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
   if BT4BarStanceBar and BT4BarStanceBar:GetAttribute("state-vis") ~= "hide" then BT4BarStanceBar:Show() end
   if BT4BarPetBar and BT4BarPetBar:GetAttribute("state-vis") ~= "hide" then BT4BarPetBar:Show() end
+
 
   -- Fade in the only half faded status bar.
   -- Store tempAlpha for OnEnter/OnLeave.

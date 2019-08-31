@@ -3,7 +3,7 @@
 ## Author: LudiusMaximus
 ## Notes: Improves fading out while talking to NPCs.
 ## RequiredDeps: Immersion, Bartender4
-## OptionalDeps: 
+## OptionalDeps: Bagnon
 ## Version: 1.0
 
 embeds.xml
