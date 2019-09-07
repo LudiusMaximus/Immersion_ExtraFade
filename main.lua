@@ -6,6 +6,7 @@ local L = LibStub("AceAddon-3.0"):NewAddon(folderName, "AceTimer-3.0")
 local fadeOutTime = 0.2
 local fadeInTime = 0.5
 
+local _G = _G
 
 local StatusBarMod = Bartender4:GetModule("StatusTrackingBar")
 StatusBarMod:Enable()
@@ -33,6 +34,11 @@ end
 
 local bagnonInventoryOpen = false
 
+local partyMemberFrameShown = {}
+local partyMemberFrameNotPresentIconShown = {}
+
+local gossipShown = false
+
 
 local gossipShowFrame = CreateFrame("Frame")
 gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
@@ -41,6 +47,15 @@ gossipShowFrame:RegisterEvent("QUEST_DETAIL")
 gossipShowFrame:RegisterEvent("QUEST_GREETING")
 gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
+
+
+  -- Make sure that this is not run when the gossip view is already shown.
+  -- Otherwise we cannot take the correct values of partyMemberFrameShown or partyMemberFrameNotPresentIconShown.
+  if gossipShown == true then
+    return
+  end
+  gossipShown = true
+
 
   ChatFrame1:SetIgnoreParentAlpha(true)
   ChatFrame1Tab:SetIgnoreParentAlpha(true)
@@ -52,6 +67,35 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
   -- Store tempAlpha for OnEnter/OnLeave.
   StatusBarMod.bar.manager.tempAlpha = 0.25
   UIFrameFadeOut(StatusBarMod.bar.manager, fadeOutTime, StatusBarMod.bar.manager:GetAlpha(), StatusBarMod.bar.manager.tempAlpha)
+
+
+  for i = 1, 4, 1 do
+
+    if _G["PartyMemberFrame" .. i] and _G["PartyMemberFrame" .. i]:IsShown() then
+      partyMemberFrameShown[i] = true
+
+      local partyMemberFrameNotPresent = _G["PartyMemberFrame" .. i .. "NotPresentIcon"]
+
+      if partyMemberFrameNotPresent and partyMemberFrameNotPresent:IsShown() then
+        partyMemberFrameNotPresentIconShown[i] = true
+        UIFrameFadeOut(partyMemberFrameNotPresent, fadeOutTime, partyMemberFrameNotPresent:GetAlpha(), 0)
+      else
+        partyMemberFrameNotPresentIconShown[i] = false
+      end
+
+    else
+      partyMemberFrameShown[i] = false
+      partyMemberFrameNotPresentIconShown[i] = false
+    end
+
+  end
+
+
+  UIFrameFadeOut(PartyMemberFrame1NotPresentIcon, fadeOutTime, PartyMemberFrame1NotPresentIcon:GetAlpha(), 0)
+  UIFrameFadeOut(PartyMemberFrame2NotPresentIcon, fadeOutTime, PartyMemberFrame1NotPresentIcon:GetAlpha(), 0)
+  UIFrameFadeOut(PartyMemberFrame3NotPresentIcon, fadeOutTime, PartyMemberFrame1NotPresentIcon:GetAlpha(), 0)
+  UIFrameFadeOut(PartyMemberFrame4NotPresentIcon, fadeOutTime, PartyMemberFrame1NotPresentIcon:GetAlpha(), 0)
+
 
 
   if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
@@ -66,6 +110,13 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     if TargetFrame then TargetFrame:Hide() end
     if BuffFrame then BuffFrame:Hide() end
     if DebuffFrame then DebuffFrame:Hide() end
+
+
+    for i = 1, 4, 1 do
+      if partyMemberFrameShown[i] then
+        _G["PartyMemberFrame" .. i]:Hide()
+      end
+    end
 
 
     if BT4Bar1 then BT4Bar1:Hide() end
@@ -105,6 +156,12 @@ gossipClosedFrame:RegisterEvent("GOSSIP_CLOSED")
 gossipClosedFrame:RegisterEvent("QUEST_FINISHED")
 gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
+  if gossipShown == false then
+    return
+  end
+  gossipShown = false
+
+
   -- Cancel hide timer if frames have not been hidden yet.
   if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
   if L.frameShowTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameShowTimer) end
@@ -116,6 +173,18 @@ gossipClosedFrame:SetScript("OnEvent", function(self, event, ...)
 
     StatusBarMod.bar.manager:SetIgnoreParentAlpha(false)
   end, fadeInTime)
+
+
+  for i = 1, 4, 1 do
+    if partyMemberFrameShown[i] then
+      _G["PartyMemberFrame" .. i]:Show()
+    end
+
+    if partyMemberFrameNotPresentIconShown[i] then
+      UIFrameFadeIn(_G["PartyMemberFrame" .. i .. "NotPresentIcon"], fadeInTime, _G["PartyMemberFrame" .. i .. "NotPresentIcon"]:GetAlpha(), 1)
+    end
+  end
+
 
 
   -- If the Bagnon inventory was open before, we open it again.
