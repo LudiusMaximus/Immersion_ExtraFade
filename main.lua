@@ -9,27 +9,36 @@ local fadeInTime = 0.5
 local _G = _G
 
 local StatusBarMod = Bartender4:GetModule("StatusTrackingBar")
-StatusBarMod:Enable()
 
-for _, frame in pairs(StatusBarMod.bar.manager.bars) do
+local SetStatusBarFading = function(self)
 
-  local originalEnter = frame:GetScript("OnEnter")
-  local originalLeave = frame:GetScript("OnLeave")
+  for _, frame in pairs(self.bar.manager.bars) do
 
-  frame:SetScript("OnEnter", function()
-    originalEnter(frame)
-    StatusBarMod.bar.manager.tempAlpha = StatusBarMod.bar.manager:GetAlpha()
-    StatusBarMod.bar.manager:SetAlpha(1)
-  end )
+    local originalEnter = frame:GetScript("OnEnter")
+    local originalLeave = frame:GetScript("OnLeave")
 
-  frame:SetScript("OnLeave", function()
-    originalLeave(frame)
-    if (StatusBarMod.bar.manager.tempAlpha ~= nil) then
-      StatusBarMod.bar.manager:SetAlpha(StatusBarMod.bar.manager.tempAlpha)
-    end
-  end )
+    frame:SetScript("OnEnter", function()
+      originalEnter(frame)
+      self.bar.manager.tempAlpha = self.bar.manager:GetAlpha()
+      self.bar.manager:SetAlpha(1)
+    end )
+
+    frame:SetScript("OnLeave", function()
+      originalLeave(frame)
+      if self.bar.manager.tempAlpha ~= nil then
+        self.bar.manager:SetAlpha(self.bar.manager.tempAlpha)
+      end
+    end )
+
+  end
 
 end
+
+hooksecurefunc(StatusBarMod, "OnEnable", SetStatusBarFading)
+
+
+
+
 
 
 local bagnonInventoryOpen = false
@@ -65,7 +74,7 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
   StatusBarMod.bar.manager:SetIgnoreParentAlpha(true)
 
   -- Store tempAlpha for OnEnter/OnLeave.
-  StatusBarMod.bar.manager.tempAlpha = 0.25
+  StatusBarMod.bar.manager.tempAlpha = 0.33
   UIFrameFadeOut(StatusBarMod.bar.manager, fadeOutTime, StatusBarMod.bar.manager:GetAlpha(), StatusBarMod.bar.manager.tempAlpha)
 
 
