@@ -1,12 +1,13 @@
 ## Interface: 11302
 ## Title: Immersion ExtraFade
 ## Author: LudiusMaximus
-## Notes: Improves fading out while talking to NPCs.
-## RequiredDeps: Immersion, Bartender4
-## OptionalDeps: Bagnon
+## Notes: Improves Immersion's UI fading while talking to NPCs.
+## RequiredDeps: Immersion
+## OptionalDeps: Bartender4
+## SavedVariables: IEF_Config
 ## Version: 1.0
 
 embeds.xml
 
 main.lua
-
+options.lua
