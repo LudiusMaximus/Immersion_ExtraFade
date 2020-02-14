@@ -4,26 +4,26 @@ local L = LibStub("AceAddon-3.0"):GetAddon(folderName)
 
 
 local defaults = {
-  
+
   hideFrameRate    = true,
   hideChatFrame    = false,
   hideTrackingBar  = false,
   trackingBarAlpha = 0.33,
-  
+
 }
 
 
 local optionsTable = {
   type = 'group',
   args = {
-    
+
     info = {
       order = 0,
       type = "description",
       name = "Make adjustemts here to chose how additional frames should or should not be hidden during NPC-interaction. \nThis only has an effect when you activate \"Hide Interface\" in Immersion's settings.\n\n",
     },
-  
-  
+
+
     hideFrameRate = {
       order = 10,
       type = 'toggle',
@@ -33,9 +33,9 @@ local optionsTable = {
       get = function() return IEF_Config.hideFrameRate end,
       set = function(_, newValue) IEF_Config.hideFrameRate = newValue end,
     },
-    
+
     nl1 = {order = 20, type = "description", name = " ",},
-    
+
     hideChatFrame = {
       order = 30,
       type = 'toggle',
@@ -45,9 +45,9 @@ local optionsTable = {
       get = function() return IEF_Config.hideChatFrame end,
       set = function(_, newValue) IEF_Config.hideChatFrame = newValue end,
     },
-    
+
     nl2 = {order = 40, type = "description", name = " ",},
-    
+
     hideTrackingBar = {
       order = 50,
       type = 'toggle',
@@ -57,9 +57,9 @@ local optionsTable = {
       get = function() return IEF_Config.hideTrackingBar end,
       set = function(_, newValue) IEF_Config.hideTrackingBar = newValue end,
     },
-    
+
     nl3 = {order = 60, type = "description", name = "",},
-    
+
     trackingBarAlpha = {
       order = 70,
       type = 'range',
@@ -73,9 +73,9 @@ local optionsTable = {
       get = function() return IEF_Config.trackingBarAlpha end,
       set = function(_, newValue) IEF_Config.trackingBarAlpha = newValue end,
     },
-    
+
     nl4 = {order = 80, type = "description", name = " ",},
-    
+
     restoreDefaults = {
       order = 90,
       type = 'execute',
@@ -88,7 +88,7 @@ local optionsTable = {
               end
             end,
     },
-    
+
   },
 }
 
@@ -108,7 +108,7 @@ function L:InitializeSavedVariables()
       IEF_Config[k] = nil
     end
   end
-  
+
   -- Set defaults for new key.
   for k, v in pairs(defaults) do
     -- print (k, v)

@@ -11,8 +11,9 @@ local fadeInTime = 0.5
 local _G = _G
 local string_find = string.find
 
-local UIFrameFadeOut = _G.UIFrameFadeOut
-local UIFrameFadeIn  = _G.UIFrameFadeIn
+local UIFrameFadeOut   = _G.UIFrameFadeOut
+local UIFrameFadeIn    = _G.UIFrameFadeIn
+local InCombatLockdown = _G.InCombatLockdown
 
 
 
@@ -22,7 +23,7 @@ local gossipShown = 0
 
 
 local function ConditionalHide(frame)
-  if not frame then return end
+  if not frame or (frame:IsProtected() and InCombatLockdown()) then return end
 
   if frame:IsShown() then
     frame.wasShown = true
@@ -35,8 +36,13 @@ end
 local function ConditionalShow(frame)
   if not frame then return end
 
-  if frame.wasShown then
-    frame:Show()
+  if frame.wasShown and not frame:IsShown() then
+    if frame:IsProtected() and InCombatLockdown() then
+      -- Try again!
+      LibStub("AceTimer-3.0"):ScheduleTimer(function() ConditionalShow(frame) end , 0.1)
+    else
+      frame:Show()
+    end
   end
 end
 
@@ -158,7 +164,7 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     MainMenuExpBar:SetIgnoreParentAlpha(true)
     MainMenuExpBar.IEF_tempAlpha = IEF_Config.trackingBarAlpha
     ConditionalFadeOutTo(MainMenuExpBar, MainMenuExpBar.IEF_tempAlpha)
-    
+
     ReputationWatchBar:SetIgnoreParentAlpha(true)
     ReputationWatchBar.IEF_tempAlpha = IEF_Config.trackingBarAlpha
     ConditionalFadeOutTo(ReputationWatchBar, ReputationWatchBar.IEF_tempAlpha)
@@ -181,12 +187,12 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
     -- These frames are always faded out by Immersion and cause unwanted tooltips.
     -- So we hide them!
-    if QuickJoinToastButton then QuickJoinToastButton:Hide() end
-    if PlayerFrame then PlayerFrame:Hide() end
-    if PetFrame then PetFrame:Hide() end
-    if TargetFrame then TargetFrame:Hide() end
-    if BuffFrame then BuffFrame:Hide() end
-    if DebuffFrame then DebuffFrame:Hide() end
+    ConditionalHide(QuickJoinToastButton)
+    ConditionalHide(PlayerFrame)
+    ConditionalHide(PetFrame)
+    ConditionalHide(TargetFrame)
+    ConditionalHide(BuffFrame)
+    ConditionalHide(DebuffFrame)
 
 
     if IEF_Config.hideTrackingBar then
@@ -237,18 +243,27 @@ end)   -- End of gossipShowFrame.
 
 
 
-local function GossipCloseFunction()
+-- If enteringCombat we only show the hidden frames (which cannot be shown
+-- during combat lockdown). But we skip the SetIgnoreParentAlpha(false).
+-- This can be done when Immersion exits the NPC interaction.
+local function GossipCloseFunction(enteringCombat)
 
   -- Only do something once per closing.
   if gossipShown == 0 then
     return
   end
-  gossipShown = 0
 
+  if not enteringCombat then
+    gossipShown = 0
+  end
+
+  -- print("GossipCloseFunction", enteringCombat)
 
   -- Show FramerateLabel again.
-  ConditionalFadeIn(FramerateLabel)
-  ConditionalFadeIn(FramerateText)
+  if not enteringCombat then
+    ConditionalFadeIn(FramerateLabel)
+    ConditionalFadeIn(FramerateText)
+  end
 
 
   -- Fade in the only half faded status bar.
@@ -256,18 +271,18 @@ local function GossipCloseFunction()
   ConditionalFadeIn(MainMenuExpBar)
   ConditionalShow(ReputationWatchBar)
   ConditionalFadeIn(ReputationWatchBar)
-  
+
   -- Store IEF_tempAlpha for OnEnter/OnLeave.
   MainMenuExpBar.IEF_tempAlpha = 1
   ReputationWatchBar.IEF_tempAlpha = 1
 
 
-  if QuickJoinToastButton then QuickJoinToastButton:Show() end
-  if PlayerFrame then PlayerFrame:Show() end
-  if PetFrame then PetFrame:Show() end
-  if TargetFrame then TargetFrame:Show() end
-  if BuffFrame then BuffFrame:Show() end
-  if DebuffFrame then DebuffFrame:Show() end
+  ConditionalShow(QuickJoinToastButton)
+  ConditionalShow(PlayerFrame)
+  ConditionalShow(PetFrame)
+  ConditionalShow(TargetFrame)
+  ConditionalShow(BuffFrame)
+  ConditionalShow(DebuffFrame)
 
 
   if Bartender4 then
@@ -310,17 +325,19 @@ local function GossipCloseFunction()
   if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
   if L.frameShowTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameShowTimer) end
 
-  -- Reset the IgnoreParentAlpha after the UI fade in is finished.
-  L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
+  if not enteringCombat then
+    -- Reset the IgnoreParentAlpha after the UI fade in is finished.
+    L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
 
-    ChatFrame1:SetIgnoreParentAlpha(false)
-    ChatFrame1Tab:SetIgnoreParentAlpha(false)
-    ChatFrame1EditBox:SetIgnoreParentAlpha(false)
+      ChatFrame1:SetIgnoreParentAlpha(false)
+      ChatFrame1Tab:SetIgnoreParentAlpha(false)
+      ChatFrame1EditBox:SetIgnoreParentAlpha(false)
 
-    ReputationWatchBar:SetIgnoreParentAlpha(false)
-    MainMenuExpBar:SetIgnoreParentAlpha(false)
-    
-  end, fadeInTime)
+      ReputationWatchBar:SetIgnoreParentAlpha(false)
+      MainMenuExpBar:SetIgnoreParentAlpha(false)
+
+    end, fadeInTime)
+  end
 
 end
 
@@ -330,8 +347,13 @@ gossipCloseFrame:RegisterEvent("GOSSIP_CLOSED")
 gossipCloseFrame:RegisterEvent("QUEST_FINISHED")
 gossipCloseFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 gossipCloseFrame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat.
-gossipCloseFrame:SetScript("OnEvent", function(...)
-  GossipCloseFunction()
+gossipCloseFrame:SetScript("OnEvent", function(self, event, ...)
+  -- print("gossipCloseFrame", event)
+  if event == "PLAYER_REGEN_DISABLED" then
+    GossipCloseFunction(true)
+  else
+    GossipCloseFunction(false)
+  end
 end)
 
 
@@ -339,7 +361,7 @@ end)
 local emergencyFrame = CreateFrame("Frame")
 emergencyFrame:SetScript("onUpdate", function(...)
   if gossipShown > 0 and UIParent:GetAlpha() == 1 and gossipShown < GetTime() then
-    GossipCloseFunction()
+    GossipCloseFunction(false)
   end
 end)
 
