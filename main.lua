@@ -39,7 +39,7 @@ local function ConditionalShow(frame)
   if frame.wasShown and not frame:IsShown() then
     if frame:IsProtected() and InCombatLockdown() then
       -- Try again!
-      LibStub("AceTimer-3.0"):ScheduleTimer(function() ConditionalShow(frame) end , 0.1)      
+      LibStub("AceTimer-3.0"):ScheduleTimer(function() ConditionalShow(frame) end , 0.1)
     else
       frame:Show()
     end
@@ -209,7 +209,7 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     ConditionalHide(TargetFrame)
     ConditionalHide(BuffFrame)
     ConditionalHide(DebuffFrame)
-    
+
 
     for i = 1, 4, 1 do
       if partyMemberFrameShown[i] then
@@ -276,7 +276,7 @@ local function GossipCloseFunction(enteringCombat)
   if gossipShown == 0 then
     return
   end
-  
+
   if not enteringCombat then
     gossipShown = 0
   end
@@ -288,7 +288,7 @@ local function GossipCloseFunction(enteringCombat)
     ConditionalFadeIn(FramerateLabel)
     ConditionalFadeIn(FramerateText)
   end
-  
+
 
   for i = 1, 4, 1 do
     if partyMemberFrameShown[i] then
@@ -379,7 +379,7 @@ local function GossipCloseFunction(enteringCombat)
 
     end, fadeInTime)
   end
-  
+
 end
 
 

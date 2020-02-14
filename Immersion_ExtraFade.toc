@@ -5,7 +5,7 @@
 ## RequiredDeps: Immersion
 ## OptionalDeps: Bartender4
 ## SavedVariables: IEF_Config
-## Version: 1.0
+## Version: 1.1
 
 embeds.xml
 
