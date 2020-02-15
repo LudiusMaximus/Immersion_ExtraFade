@@ -49,6 +49,8 @@ end
 
 
 local function ConditionalFadeOutTo(frame, targetAlpha)
+  if not frame then return end
+  
   if frame:IsShown() then
     frame.wasShown = true
     UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
@@ -58,6 +60,8 @@ local function ConditionalFadeOutTo(frame, targetAlpha)
 end
 
 local function ConditionalFadeIn(frame)
+  if not frame then return end
+  
   if frame.wasShown then
     UIFrameFadeIn(frame, fadeInTime, frame:GetAlpha(), 1)
   end
