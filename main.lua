@@ -26,17 +26,17 @@ local function ConditionalHide(frame)
   if not frame or (frame:IsProtected() and InCombatLockdown()) then return end
 
   if frame:IsShown() then
-    frame.wasShown = true
+    frame.IEF_wasShown = true
     frame:Hide()
   else
-    frame.wasShown = false
+    frame.IEF_wasShown = false
   end
 end
 
 local function ConditionalShow(frame)
   if not frame then return end
 
-  if frame.wasShown and not frame:IsShown() then
+  if frame.IEF_wasShown and not frame:IsShown() then
     if frame:IsProtected() and InCombatLockdown() then
       -- Try again!
       LibStub("AceTimer-3.0"):ScheduleTimer(function() ConditionalShow(frame) end , 0.1)
@@ -52,18 +52,19 @@ local function ConditionalFadeOutTo(frame, targetAlpha)
   if not frame then return end
 
   if frame:IsShown() then
-    frame.wasShown = true
+    frame.IEF_wasShown = true
+    frame.IEF_originalAlpha = frame:GetAlpha()
     UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
   else
-    frame.wasShown = false
+    frame.IEF_wasShown = false
   end
 end
 
 local function ConditionalFadeIn(frame)
   if not frame then return end
 
-  if frame.wasShown then
-    UIFrameFadeIn(frame, fadeInTime, frame:GetAlpha(), 1)
+  if frame.IEF_wasShown then
+    UIFrameFadeIn(frame, fadeInTime, frame:GetAlpha(), frame.IEF_originalAlpha)
   end
 end
 
