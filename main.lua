@@ -53,8 +53,33 @@ local function ConditionalFadeOutTo(frame, targetAlpha)
 
   if frame:IsShown() then
     frame.IEF_wasShown = true
-    frame.IEF_originalAlpha = frame:GetAlpha()
-    UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
+    
+    -- If we are starting to fade out while a fade in was still in progress,
+    -- we use the target as the original.
+    if frame.IEF_targetAlpha ~= nil then 
+      frame.IEF_originalAlpha = frame.IEF_targetAlpha
+      -- print("Fade-in still in progress. Using", frame.IEF_targetAlpha, "instead of", frame:GetAlpha())
+    else
+      frame.IEF_originalAlpha = frame:GetAlpha()
+    end
+    
+    -- Mark that fading is in progress.
+    frame.IEF_targetAlpha = targetAlpha
+    
+    -- UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
+    -- The same as above with callback function.
+    local fadeInfo = {};
+    fadeInfo.mode = "OUT";
+    fadeInfo.timeToFade = fadeOutTime
+    fadeInfo.startAlpha = frame:GetAlpha()
+    fadeInfo.endAlpha = targetAlpha
+    fadeInfo.finishedFunc = function(finishedArg1)
+        -- print(finishedArg1:GetName(), "finished")
+        finishedArg1.IEF_targetAlpha = nil
+       end
+    fadeInfo.finishedArg1 = frame
+    UIFrameFade(frame, fadeInfo)
+    
   else
     frame.IEF_wasShown = false
   end
@@ -64,12 +89,26 @@ local function ConditionalFadeIn(frame)
   if not frame then return end
 
   if frame.IEF_wasShown then
-    UIFrameFadeIn(frame, fadeInTime, frame:GetAlpha(), frame.IEF_originalAlpha)
+  
+    -- Mark that fading is in progress.
+    frame.IEF_targetAlpha = frame.IEF_originalAlpha
+  
+    -- UIFrameFadeIn(frame, fadeInTime, frame:GetAlpha(), frame.IEF_originalAlpha)
+    -- The same as above with callback function.
+    local fadeInfo = {};
+    fadeInfo.mode = "IN";
+    fadeInfo.timeToFade = fadeInTime
+    fadeInfo.startAlpha = frame:GetAlpha()
+    fadeInfo.endAlpha = frame.IEF_originalAlpha
+    fadeInfo.finishedFunc = function(finishedArg1)
+        -- print(finishedArg1:GetName(), "finished")
+        finishedArg1.IEF_targetAlpha = nil
+       end
+    fadeInfo.finishedArg1 = frame
+    UIFrameFade(frame, fadeInfo)
+    
   end
 end
-
-
-
 
 
 
