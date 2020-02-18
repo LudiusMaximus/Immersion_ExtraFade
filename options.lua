@@ -20,7 +20,7 @@ local optionsTable = {
     info = {
       order = 0,
       type = "description",
-      name = "Make adjustemts here to chose how additional frames should or should not be hidden during NPC-interaction. \nThis only has an effect when you activate \"Hide Interface\" in Immersion's settings.\n\n",
+      name = "Make adjustemts here to chose how additional frames should or should not be hidden during NPC interaction. \nThis only has an effect when you activate \"Hide Interface\" in Immersion's settings.\n\n",
     },
 
 
