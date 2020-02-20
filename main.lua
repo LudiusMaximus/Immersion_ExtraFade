@@ -355,7 +355,9 @@ local function GossipCloseFunction(enteringCombat)
     ConditionalShow(BT4StatusBarTrackingManager)
     ConditionalFadeIn(BT4StatusBarTrackingManager)
     -- Store IEF_tempAlpha for OnEnter/OnLeave.
-    BT4StatusBarTrackingManager.IEF_tempAlpha = 1
+    if BT4StatusBarTrackingManager then
+      BT4StatusBarTrackingManager.IEF_tempAlpha = 1
+    end
 
   else
 
@@ -376,7 +378,9 @@ local function GossipCloseFunction(enteringCombat)
     ConditionalShow(StatusTrackingBarManager)
     ConditionalFadeIn(StatusTrackingBarManager)
     -- Store IEF_tempAlpha for OnEnter/OnLeave.
-    StatusTrackingBarManager.IEF_tempAlpha = 1
+    if StatusTrackingBarManager then
+      StatusTrackingBarManager.IEF_tempAlpha = 1
+    end
 
   end
 
