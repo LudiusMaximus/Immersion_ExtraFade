@@ -297,9 +297,13 @@ local function GossipCloseFunction(enteringCombat)
   ConditionalFadeIn(ReputationWatchBar)
 
   -- Store IEF_tempAlpha for OnEnter/OnLeave.
-  MainMenuExpBar.IEF_tempAlpha = 1
-  ReputationWatchBar.IEF_tempAlpha = 1
-
+  if MainMenuExpBar then
+    MainMenuExpBar.IEF_tempAlpha = 1
+  end
+  
+  if ReputationWatchBar then
+    ReputationWatchBar.IEF_tempAlpha = 1
+  end
 
   ConditionalShow(QuickJoinToastButton)
   ConditionalShow(PlayerFrame)
