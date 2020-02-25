@@ -202,19 +202,7 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
   -- Got to manually fade out (and aftewards hide) the PartyMemberFrame..NotPresentIcon.
   for i = 1, 4, 1 do
-    if _G["PartyMemberFrame" .. i] and _G["PartyMemberFrame" .. i]:IsShown() then
-      partyMemberFrameShown[i] = true
-      local partyMemberFrameNotPresent = _G["PartyMemberFrame" .. i .. "NotPresentIcon"]
-      if partyMemberFrameNotPresent and partyMemberFrameNotPresent:IsShown() then
-        partyMemberFrameNotPresentIconShown[i] = true
-        UIFrameFadeOut(partyMemberFrameNotPresent, fadeOutTime, partyMemberFrameNotPresent:GetAlpha(), 0)
-      else
-        partyMemberFrameNotPresentIconShown[i] = false
-      end
-    else
-      partyMemberFrameShown[i] = false
-      partyMemberFrameNotPresentIconShown[i] = false
-    end
+    ConditionalFadeOutTo(_G["PartyMemberFrame" .. i .. "NotPresentIcon"], 0)
   end
 
 
@@ -239,9 +227,7 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
 
     for i = 1, 4, 1 do
-      if partyMemberFrameShown[i] then
-        _G["PartyMemberFrame" .. i]:Hide()
-      end
+      ConditionalHide(_G["PartyMemberFrame" .. i])
     end
 
 
@@ -318,13 +304,8 @@ local function GossipCloseFunction(enteringCombat)
 
 
   for i = 1, 4, 1 do
-    if partyMemberFrameShown[i] then
-      _G["PartyMemberFrame" .. i]:Show()
-    end
-
-    if partyMemberFrameNotPresentIconShown[i] then
-      UIFrameFadeIn(_G["PartyMemberFrame" .. i .. "NotPresentIcon"], fadeInTime, _G["PartyMemberFrame" .. i .. "NotPresentIcon"]:GetAlpha(), 1)
-    end
+    ConditionalShow(_G["PartyMemberFrame" .. i])
+    ConditionalFadeIn(_G["PartyMemberFrame" .. i .. "NotPresentIcon"])
   end
 
 
