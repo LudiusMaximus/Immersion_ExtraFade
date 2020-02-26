@@ -5,10 +5,11 @@ local L = LibStub("AceAddon-3.0"):GetAddon(folderName)
 
 local defaults = {
 
-  hideFrameRate    = true,
-  hideChatFrame    = false,
-  hideTrackingBar  = false,
-  trackingBarAlpha = 0.33,
+  hideFrameRate          = true,
+  hideFrameRateCinematic = true,
+  hideChatFrame          = false,
+  hideTrackingBar        = false,
+  trackingBarAlpha       = 0.33,
 
 }
 
@@ -27,11 +28,20 @@ local optionsTable = {
     hideFrameRate = {
       order = 10,
       type = 'toggle',
-      name = "Hide Frame Rate",
+      name = "Hide Frame Rate during NPC interaction",
       desc = "Check this to hide the frame rate during Immersion's \"Hide Interface\"!",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.hideFrameRate end,
       set = function(_, newValue) IEF_Config.hideFrameRate = newValue end,
+    },
+    hideFrameRateCinematic = {
+      order = 15,
+      type = 'toggle',
+      name = "Hide Frame Rate during cinematics",
+      desc = "Check this to hide the frame rate while ingame cinematics are playing!",
+      width = "double",
+      get = function() return IEF_Config.hideFrameRateCinematic end,
+      set = function(_, newValue) IEF_Config.hideFrameRateCinematic = newValue end,
     },
 
     nl1 = {order = 20, type = "description", name = " ",},

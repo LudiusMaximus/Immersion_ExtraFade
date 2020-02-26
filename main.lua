@@ -20,6 +20,8 @@ local InCombatLockdown = _G.InCombatLockdown
 -- Flags
 local gossipShown = 0
 
+local cinematicRunning = false
+local framerateWasShown = false
 
 
 local function ConditionalHide(frame)
@@ -388,10 +390,35 @@ end)
 -- If we somehow missed to show the frames again, we do it here!
 local emergencyFrame = CreateFrame("Frame")
 emergencyFrame:SetScript("onUpdate", function(...)
-  if gossipShown > 0 and UIParent:GetAlpha() == 1 and gossipShown < GetTime() then
+  if not cinematicRunning and gossipShown > 0 and UIParent:GetAlpha() == 1 and gossipShown < GetTime() then
     GossipCloseFunction(false)
   end
 end)
+
+
+
+
+local toggleFramerateFrame = CreateFrame("Frame")
+toggleFramerateFrame:RegisterEvent("CINEMATIC_START")
+toggleFramerateFrame:RegisterEvent("CINEMATIC_STOP")
+toggleFramerateFrame:SetScript("OnEvent", function(self, event)
+  if event == "CINEMATIC_START" then
+    cinematicRunning = true
+    if IEF_Config.hideFrameRateCinematic and FramerateLabel:IsVisible() then
+      framerateWasShown = true
+      ToggleFramerate()
+    end
+  else
+    cinematicRunning = false
+    if not FramerateLabel:IsVisible() and framerateWasShown then
+      framerateWasShown = false
+      ToggleFramerate()
+    end
+  end
+end)
+
+
+
 
 
 function L:OnInitialize()
