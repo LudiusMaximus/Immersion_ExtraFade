@@ -1,4 +1,4 @@
-## Interface: 11302
+## Interface: 11303
 ## Title: Immersion ExtraFade
 ## Author: LudiusMaximus
 ## Notes: Improves Immersion's UI fading while talking to NPCs.
