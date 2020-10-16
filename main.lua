@@ -144,7 +144,7 @@ local function GameTooltipHider(self)
   end
   if ownerName == nil then return end
 
-  if string_find(ownerName, "^ContainerFrame") then
+  if string_find(ownerName, "^ContainerFrame") or ownerName == "ChatFrameChannelButton" then
     self:Hide()
   -- else
     -- print(ownerName)
