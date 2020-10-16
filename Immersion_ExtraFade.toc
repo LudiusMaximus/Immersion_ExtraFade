@@ -1,11 +1,15 @@
-## Interface: 11304
+## Interface: 11305
+## Version: @project-version@
 ## Title: Immersion ExtraFade
 ## Author: LudiusMaximus
 ## Notes: Improves Immersion's UI fading while talking to NPCs.
 ## RequiredDeps: Immersion
 ## OptionalDeps: Bartender4
 ## SavedVariables: IEF_Config
-## Version: 1.6
+## X-Curse-Project-ID: 362188
+## X-WoWI-ID: 25527
+## X-Donate: PayPal:ludiusmaximus@gmail.com
+## X-License: The MIT License (MIT)
 
 embeds.xml
 
