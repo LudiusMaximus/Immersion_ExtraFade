@@ -4,7 +4,7 @@
 ## Author: LudiusMaximus
 ## Notes: Improves Immersion's UI fading while talking to NPCs.
 ## RequiredDeps: Immersion
-## OptionalDeps: Bartender4
+## OptionalDeps: Bartender4, GW2_UI
 ## SavedVariables: IEF_Config
 ## X-Curse-Project-ID: 362188
 ## X-WoWI-ID: 25527

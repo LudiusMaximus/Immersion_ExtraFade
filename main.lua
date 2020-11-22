@@ -16,7 +16,6 @@ local UIFrameFadeIn    = _G.UIFrameFadeIn
 local InCombatLockdown = _G.InCombatLockdown
 
 
-
 -- Flags
 local gossipShown = 0
 
@@ -55,18 +54,18 @@ local function ConditionalFadeOutTo(frame, targetAlpha)
 
   if frame:IsShown() then
     frame.IEF_wasShown = true
-    
+
     -- If we are starting to fade-out while a fade-in was still in progress,
     -- we use the fade-in's target alpha as the original alpha.
-    if frame.IEF_fadeInTargetAlpha ~= nil then 
+    if frame.IEF_fadeInTargetAlpha ~= nil then
       frame.IEF_alphaBeforeFadeOut = frame.IEF_fadeInTargetAlpha
       -- print("Fade-in still in progress. Using", frame.IEF_fadeInTargetAlpha, "instead of", frame:GetAlpha())
     else
       frame.IEF_alphaBeforeFadeOut = frame:GetAlpha()
     end
-    
+
     UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
-    
+
   else
     frame.IEF_wasShown = false
   end
@@ -76,10 +75,10 @@ local function ConditionalFadeIn(frame)
   if not frame then return end
 
   if frame.IEF_wasShown then
-  
+
     -- Mark that fade-in is in progress.
     frame.IEF_fadeInTargetAlpha = frame.IEF_alphaBeforeFadeOut
-  
+
     -- The same as UIFrameFadeIn(), but with a callback function.
     local fadeInfo = {};
     fadeInfo.mode = "IN";
@@ -92,7 +91,7 @@ local function ConditionalFadeIn(frame)
       end
     fadeInfo.finishedArg1 = frame
     UIFrameFade(frame, fadeInfo)
-    
+
   end
 end
 
@@ -124,6 +123,36 @@ for _, frame in pairs({ReputationWatchBar, MainMenuExpBar}) do
 end
 
 
+if IsAddOnLoaded("GW2_UI") then
+
+  -- GW2_UI seems to offer no way of hooking any of its functions.
+  -- So we have to do it like this.
+  local enterWorldFrame = CreateFrame("Frame")
+  enterWorldFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+  enterWorldFrame:SetScript("OnEvent", function()
+    if GwExperienceFrame then
+
+      local originalEnter = GwExperienceFrame:GetScript("OnEnter")
+      local originalLeave = GwExperienceFrame:GetScript("OnLeave")
+
+      GwExperienceFrame:SetScript("OnEnter", function(...)
+        GwExperienceFrame.IEF_tempAlpha = GwExperienceFrame:GetAlpha()
+        GwExperienceFrame:SetAlpha(1)
+        originalEnter(...)
+      end)
+
+      GwExperienceFrame:SetScript("OnLeave", function(...)
+        originalLeave(...)
+        if GwExperienceFrame.IEF_tempAlpha ~= nil then
+          GwExperienceFrame:SetAlpha(GwExperienceFrame.IEF_tempAlpha)
+        end
+      end)
+
+    end
+  end)
+
+end
+
 
 
 -- To hide the tooltip of bag items.
@@ -139,7 +168,7 @@ local function GameTooltipHider(self)
   end
   if ownerName == nil then return end
 
-  if string_find(ownerName, "^ContainerFrame") or ownerName == "ChatFrameChannelButton" or ownerName == "ChatFrameMenuButton" then 
+  if string_find(ownerName, "^ContainerFrame") or ownerName == "ChatFrameChannelButton" or ownerName == "ChatFrameMenuButton" then
     self:Hide()
   -- else
     -- print(ownerName)
@@ -154,13 +183,8 @@ GameTooltip:HookScript('OnShow', GameTooltipHider)
 
 
 
-local gossipShowFrame = CreateFrame("Frame")
-gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
-gossipShowFrame:RegisterEvent("QUEST_COMPLETE")
-gossipShowFrame:RegisterEvent("QUEST_DETAIL")
-gossipShowFrame:RegisterEvent("QUEST_GREETING")
-gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
-gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
+
+local function GossipShowFunction()
 
   -- Make sure that this is not run when the gossip view is already shown.
   if gossipShown ~= 0 then
@@ -178,10 +202,12 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     ChatFrame1:SetIgnoreParentAlpha(true)
     ChatFrame1Tab:SetIgnoreParentAlpha(true)
     ChatFrame1EditBox:SetIgnoreParentAlpha(true)
+
+    if GwChatContainer1 then
+      GwChatContainer1:SetIgnoreParentAlpha(true)
+    end
+
   end
-
-
-
 
   -- Store IEF_tempAlpha for OnEnter/OnLeave.
   if not IEF_Config.hideTrackingBar then
@@ -195,8 +221,13 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
     ReputationWatchBar.IEF_tempAlpha = IEF_Config.trackingBarAlpha
     ConditionalFadeOutTo(ReputationWatchBar, ReputationWatchBar.IEF_tempAlpha)
 
-  end
+    if GwExperienceFrame then
+      GwExperienceFrame:SetIgnoreParentAlpha(true)
+      GwExperienceFrame.IEF_tempAlpha = IEF_Config.trackingBarAlpha
+      ConditionalFadeOutTo(GwExperienceFrame, GwExperienceFrame.IEF_tempAlpha)
+    end
 
+  end
 
 
 
@@ -262,11 +293,29 @@ gossipShowFrame:SetScript("OnEvent", function(self, event, ...)
 
     end
 
+
+    if IsAddOnLoaded("GW2_UI") then
+
+      -- TODO: Could hide other GW2_UI frames too,
+      -- which should not give tooltips while faded...
+
+      if IEF_Config.hideTrackingBar then
+        ConditionalHide(GwExperienceFrame)
+      end
+
+    end
+
   end, fadeOutTime)
 
-end)   -- End of gossipShowFrame.
+end
 
-
+local gossipShowFrame = CreateFrame("Frame")
+gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
+gossipShowFrame:RegisterEvent("QUEST_COMPLETE")
+gossipShowFrame:RegisterEvent("QUEST_DETAIL")
+gossipShowFrame:RegisterEvent("QUEST_GREETING")
+gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
+gossipShowFrame:SetScript("OnEvent", GossipShowFunction)
 
 
 -- If enteringCombat we only show the hidden frames (which cannot be shown
@@ -302,7 +351,7 @@ local function GossipCloseFunction(enteringCombat)
   if MainMenuExpBar then
     MainMenuExpBar.IEF_tempAlpha = 1
   end
-  
+
   if ReputationWatchBar then
     ReputationWatchBar.IEF_tempAlpha = 1
   end
@@ -350,21 +399,42 @@ local function GossipCloseFunction(enteringCombat)
   end
 
 
+  if IsAddOnLoaded("GW2_UI") then
+
+    -- TODO: Whould have to show other GW2_UI frames again,
+    -- which were hidden in GossipShowFunction()...
+
+    if GwExperienceFrame then
+      ConditionalShow(GwExperienceFrame)
+      ConditionalFadeIn(GwExperienceFrame)
+      GwExperienceFrame.IEF_tempAlpha = 1
+    end
+
+  end
+
 
   -- Cancel timers that may still be in progress.
   if L.frameHideTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameHideTimer) end
   if L.frameShowTimer then LibStub("AceTimer-3.0"):CancelTimer(L.frameShowTimer) end
 
   if not enteringCombat then
-    -- Reset the IgnoreParentAlpha after the UI fade in is finished.
+    -- Reset the IgnoreParentAlpha after the UI fade-in is finished.
     L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
 
       ChatFrame1:SetIgnoreParentAlpha(false)
       ChatFrame1Tab:SetIgnoreParentAlpha(false)
       ChatFrame1EditBox:SetIgnoreParentAlpha(false)
 
+      if GwChatContainer1 then
+        GwChatContainer1:SetIgnoreParentAlpha(false)
+      end
+
       ReputationWatchBar:SetIgnoreParentAlpha(false)
       MainMenuExpBar:SetIgnoreParentAlpha(false)
+
+      if GwExperienceFrame then
+        GwExperienceFrame:SetIgnoreParentAlpha(false)
+      end
 
     end, fadeInTime)
   end
@@ -419,12 +489,8 @@ end)
 
 
 
-
-
 function L:OnInitialize()
-
   self:InitializeSavedVariables()
   self:InitializeOptions()
-
 end
 
