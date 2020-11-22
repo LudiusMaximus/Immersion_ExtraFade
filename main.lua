@@ -321,17 +321,17 @@ local function GossipShowFunction()
       end
 
     end
-    
-    
+
+
     if IsAddOnLoaded("GW2_UI") then
 
       -- TODO: Could hide other GW2_UI frames too,
       -- which should not give tooltips while faded...
-      
+
       if IEF_Config.hideTrackingBar then
         ConditionalHide(GwExperienceFrame)
       end
-    
+
     end
 
   end, fadeOutTime)
@@ -527,11 +527,6 @@ toggleFramerateFrame:SetScript("OnEvent", function(self, event)
     end
   end
 end)
-
-
-
-
-
 
 
 
