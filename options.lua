@@ -7,6 +7,7 @@ local defaults = {
 
   hideFrameRate          = true,
   hideFrameRateCinematic = true,
+  hideAlertFrame         = false,
   hideChatFrame          = false,
   hideTrackingBar        = false,
   trackingBarAlpha       = 0.33,
@@ -44,7 +45,19 @@ local optionsTable = {
       set = function(_, newValue) IEF_Config.hideFrameRateCinematic = newValue end,
     },
 
-    nl1 = {order = 20, type = "description", name = " ",},
+    nl0 = {order = 20, type = "description", name = " ",},
+
+    hideAlertFrame = {
+      order = 25,
+      type = 'toggle',
+      name = "Hide Alert Frames",
+      desc = "Uncheck this to see the alert frames (e.g. when completing achievements) during Immersion's \"Hide Interface\"!",
+      width = "normal",
+      get = function() return IEF_Config.hideAlertFrame end,
+      set = function(_, newValue) IEF_Config.hideAlertFrame = newValue end,
+    },
+
+    nl1 = {order = 27, type = "description", name = " ",},
 
     hideChatFrame = {
       order = 30,
@@ -68,7 +81,7 @@ local optionsTable = {
       set = function(_, newValue) IEF_Config.hideTrackingBar = newValue end,
     },
 
-    nl3 = {order = 60, type = "description", name = "",},
+    nl3 = {order = 60, type = "description", name = " ",},
 
     trackingBarAlpha = {
       order = 70,

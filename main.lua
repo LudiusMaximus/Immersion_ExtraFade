@@ -25,6 +25,41 @@ local cinematicRunning = false
 local framerateWasShown = false
 
 
+
+
+-- The alert frames are hard to come by...
+-- https://www.wowinterface.com/forums/showthread.php?p=337803
+-- For testing: 
+-- /run UIParent:SetAlpha(0.5)
+-- /run NewMountAlertSystem:ShowAlert("123"); NewMountAlertSystem:ShowAlert("123")
+
+local collectedAlertFrames = {}
+local alertFramesIgnoreParentAlpha = false
+
+local function SetAlertFramesIgnoreParentAlpha(enable)
+  alertFramesIgnoreParentAlpha = enable
+  for _, v in pairs(collectedAlertFrames) do
+    v:SetIgnoreParentAlpha(enable)
+  end
+end
+
+local function CollectAlertFrame(_, frame)
+  if not frame.IEF_collected then
+    tinsert(collectedAlertFrames, frame)
+    frame.IEF_collected = true
+    frame:SetIgnoreParentAlpha(alertFramesIgnoreParentAlpha)
+  end
+end
+
+for _, subSystem in pairs(AlertFrame.alertFrameSubSystems) do
+  local pool = type(subSystem) == 'table' and subSystem.alertFramePool
+  if type(pool) == 'table' and type(pool.resetterFunc) == 'function' then
+    hooksecurefunc(pool, "resetterFunc", CollectAlertFrame)
+  end
+end
+
+
+
 local function ConditionalHide(frame)
   if not frame or (frame:IsProtected() and InCombatLockdown()) then return end
 
@@ -192,9 +227,9 @@ local function GameTooltipHider(self)
   end
 end
 
-GameTooltip:HookScript('OnTooltipSetDefaultAnchor', GameTooltipHider)
-GameTooltip:HookScript('OnTooltipSetItem', GameTooltipHider)
-GameTooltip:HookScript('OnShow', GameTooltipHider)
+GameTooltip:HookScript("OnTooltipSetDefaultAnchor", GameTooltipHider)
+GameTooltip:HookScript("OnTooltipSetItem", GameTooltipHider)
+GameTooltip:HookScript("OnShow", GameTooltipHider)
 
 
 
@@ -216,6 +251,10 @@ local function GossipShowFunction()
     ConditionalFadeOutTo(FramerateText, 0)
   end
 
+  if not IEF_Config.hideAlertFrame then
+    SetAlertFramesIgnoreParentAlpha(true)
+  end
+
   if not IEF_Config.hideChatFrame then
     ChatFrame1:SetIgnoreParentAlpha(true)
     ChatFrame1Tab:SetIgnoreParentAlpha(true)
@@ -224,7 +263,6 @@ local function GossipShowFunction()
     if GwChatContainer1 then
       GwChatContainer1:SetIgnoreParentAlpha(true)
     end
-
   end
 
   -- Store IEF_tempAlpha for OnEnter/OnLeave.
@@ -457,6 +495,8 @@ local function GossipCloseFunction(enteringCombat)
   if not enteringCombat then
     -- Reset the IgnoreParentAlpha after the UI fade-in is finished.
     L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
+
+      SetAlertFramesIgnoreParentAlpha(false)
 
       ChatFrame1:SetIgnoreParentAlpha(false)
       ChatFrame1Tab:SetIgnoreParentAlpha(false)
