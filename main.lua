@@ -18,8 +18,6 @@ local InCombatLockdown = _G.InCombatLockdown
 
 -- Flags
 local gossipShown = 0
-local partyMemberFrameShown = {}
-local partyMemberFrameNotPresentIconShown = {}
 
 local cinematicRunning = false
 local framerateWasShown = false
@@ -29,7 +27,7 @@ local framerateWasShown = false
 
 -- The alert frames are hard to come by...
 -- https://www.wowinterface.com/forums/showthread.php?p=337803
--- For testing: 
+-- For testing:
 -- /run UIParent:SetAlpha(0.5)
 -- /run NewMountAlertSystem:ShowAlert("123"); NewMountAlertSystem:ShowAlert("123")
 
@@ -234,12 +232,9 @@ GameTooltip:HookScript("OnShow", GameTooltipHider)
 
 
 
-
-
 local function GossipShowFunction()
 
   -- Make sure that this is not run when the gossip view is already shown.
-  -- Otherwise we cannot take the correct values of partyMemberFrameShown or partyMemberFrameNotPresentIconShown.
   if gossipShown ~= 0 then
     return
   end
@@ -252,6 +247,7 @@ local function GossipShowFunction()
   end
 
   if not IEF_Config.hideAlertFrame then
+    -- CovenantRenownToast:SetIgnoreParentAlpha(true)
     SetAlertFramesIgnoreParentAlpha(true)
   end
 
@@ -286,10 +282,26 @@ local function GossipShowFunction()
   end
 
 
-  -- Got to manually fade out (and aftewards hide) the PartyMemberFrame..NotPresentIcon.
+  -- Got to manually fade out the PartyMemberFrame..NotPresentIcon
+  -- and afterwards hide PartyMemberFrame..
   for i = 1, 4, 1 do
     ConditionalFadeOutTo(_G["PartyMemberFrame" .. i .. "NotPresentIcon"], 0)
   end
+
+
+  -- Got to manually fade out these CompactRaidFrame.. child frames
+  -- and afterwards hide CompactRaidFrame..
+  for i = 1, 40, 1 do
+    if _G["CompactRaidFrame" .. i] then
+      ConditionalFadeOutTo(_G["CompactRaidFrame" .. i .. "Background"], 0)
+      ConditionalFadeOutTo(_G["CompactRaidFrame" .. i .. "HorizTopBorder"], 0)
+      ConditionalFadeOutTo(_G["CompactRaidFrame" .. i .. "HorizBottomBorder"], 0)
+      ConditionalFadeOutTo(_G["CompactRaidFrame" .. i .. "VertLeftBorder"], 0)
+      ConditionalFadeOutTo(_G["CompactRaidFrame" .. i .. "VertRightBorder"], 0)
+    end
+  end
+
+
 
 
   -- Cancel timers that may still be in progress.
@@ -314,6 +326,12 @@ local function GossipShowFunction()
 
     for i = 1, 4, 1 do
       ConditionalHide(_G["PartyMemberFrame" .. i])
+    end
+
+    for i = 1, 40, 1 do
+      if _G["CompactRaidFrame" .. i] then
+        ConditionalHide(_G["CompactRaidFrame" .. i])
+      end
     end
 
 
@@ -413,6 +431,17 @@ local function GossipCloseFunction(enteringCombat)
     ConditionalFadeIn(_G["PartyMemberFrame" .. i .. "NotPresentIcon"])
   end
 
+  for i = 1, 40, 1 do
+    if _G["CompactRaidFrame" .. i] then
+      ConditionalShow(_G["CompactRaidFrame" .. i])
+      ConditionalFadeIn(_G["CompactRaidFrame" .. i .. "Background"])
+      ConditionalFadeIn(_G["CompactRaidFrame" .. i .. "HorizTopBorder"])
+      ConditionalFadeIn(_G["CompactRaidFrame" .. i .. "HorizBottomBorder"])
+      ConditionalFadeIn(_G["CompactRaidFrame" .. i .. "VertLeftBorder"])
+      ConditionalFadeIn(_G["CompactRaidFrame" .. i .. "VertRightBorder"])
+    end
+  end
+
 
   ConditionalShow(QuickJoinToastButton)
   ConditionalShow(PlayerFrame)
@@ -497,6 +526,7 @@ local function GossipCloseFunction(enteringCombat)
     L.frameShowTimer = LibStub("AceTimer-3.0"):ScheduleTimer(function()
 
       SetAlertFramesIgnoreParentAlpha(false)
+      -- CovenantRenownToast:SetIgnoreParentAlpha(false)
 
       ChatFrame1:SetIgnoreParentAlpha(false)
       ChatFrame1Tab:SetIgnoreParentAlpha(false)
