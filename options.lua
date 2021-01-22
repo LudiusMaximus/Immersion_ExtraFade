@@ -2,7 +2,6 @@ local folderName = ...
 local L = LibStub("AceAddon-3.0"):GetAddon(folderName)
 
 
-
 local defaults = {
 
   hideFrameRate          = true,
@@ -51,7 +50,7 @@ local optionsTable = {
       order = 25,
       type = 'toggle',
       name = "Hide Alert Frames",
-      desc = "Uncheck this to see the alert frames (e.g. when completing achievements) during Immersion's \"Hide Interface\"!",
+      desc = "Uncheck this to see the alert frames (e.g. Covenant Renown or when completing achievements) during Immersion's \"Hide Interface\"!",
       width = "normal",
       get = function() return IEF_Config.hideAlertFrame end,
       set = function(_, newValue) IEF_Config.hideAlertFrame = newValue end,
@@ -148,6 +147,6 @@ function L:InitializeOptions()
 
   LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("Immersion ExtraFade", optionsTable)
   self.optionsMenu = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Immersion ExtraFade", "Immersion ExtraFade")
-
+  
 end
 

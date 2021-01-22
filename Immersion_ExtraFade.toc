@@ -13,5 +13,7 @@
 
 embeds.xml
 
+
 main.lua
+hide_module.lua
 options.lua
