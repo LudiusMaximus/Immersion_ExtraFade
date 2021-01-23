@@ -200,6 +200,7 @@ local function ConditionalFadeOutTo(frame, targetAlpha, fadeOutTime)
   end
   frame.ludius_alphaAfterFadeOut = targetAlpha
 
+  UIFrameFadeRemoveFrame(frame)
   UIFrameFadeOut(frame, fadeOutTime, frame:GetAlpha(), targetAlpha)
 
   -- This is to let SetStatusBarAlpha() know whether we are
@@ -223,6 +224,8 @@ local function ConditionalFadeIn(frame, fadeInTime)
       finishedArg1.ludius_alphaBeforeFadeOut = nil
       finishedArg1.ludius_alphaAfterFadeOut = nil
     end
+    
+  UIFrameFadeRemoveFrame(frame)
   UIFrameFade(frame, fadeInfo)
 
   frame.ludius_fadeout = false
