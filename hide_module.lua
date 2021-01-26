@@ -401,7 +401,7 @@ end
 -- If enteringCombat we only show the hidden frames (which cannot be shown
 -- during combat lockdown). But we skip the SetIgnoreParentAlpha(false).
 -- This can be done when Immersion exits the NPC interaction.
-Addon.ShowUI = function(config, fadeInTime, enteringCombat)
+Addon.ShowUI = function(fadeInTime, enteringCombat)
 
   -- print("ShowUI", enteringCombat)
 

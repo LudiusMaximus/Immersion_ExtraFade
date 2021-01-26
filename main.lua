@@ -31,9 +31,9 @@ gossipCloseFrame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat.
 gossipCloseFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipCloseFrame", event)
   if event == "PLAYER_REGEN_DISABLED" then
-    Addon.ShowUI(IEF_Config, fadeInTime, true)
+    Addon.ShowUI(fadeInTime, true)
   else
-    Addon.ShowUI(IEF_Config, fadeInTime, false)
+    Addon.ShowUI(fadeInTime, false)
   end
 end)
 
@@ -49,7 +49,7 @@ local emergencyFrame = CreateFrame("Frame")
 emergencyFrame:SetScript("onUpdate", function()
   if UIParent:GetAlpha() == 1 and Addon.uiHiddenTime > 0 and Addon.uiHiddenTime < GetTime() and not cinematicRunning then
     -- print("Emergency show")
-    Addon.ShowUI(IEF_Config, 0, false)
+    Addon.ShowUI(0, false)
   end
 end)
 
