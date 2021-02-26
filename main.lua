@@ -20,7 +20,11 @@ gossipShowFrame:RegisterEvent("QUEST_GREETING")
 gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipShowFrame", event)
-  Addon.HideUI(IEF_Config, fadeOutTime)
+  
+  -- Immersion always fades the UI to 0.
+  IEF_Config.UIParentAlpha = 0
+  
+  Addon.HideUI(fadeOutTime, IEF_Config)
 end)
 
 local gossipCloseFrame = CreateFrame("Frame")
@@ -28,15 +32,18 @@ gossipCloseFrame:RegisterEvent("GOSSIP_CLOSED")
 gossipCloseFrame:RegisterEvent("QUEST_FINISHED")
 gossipCloseFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 gossipCloseFrame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat.
+gossipCloseFrame:RegisterEvent("PLAYER_REGEN_ENABLED") -- Exiting combat.
 gossipCloseFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipCloseFrame", event)
   if event == "PLAYER_REGEN_DISABLED" then
-    Addon.ShowUI(fadeInTime, true)
+    Addon.ShowUI(0, true)
+  elseif event == "PLAYER_REGEN_ENABLED" then
+    IEF_Config.UIParentAlpha = 0
+    Addon.HideUI(0, IEF_Config)
   else
     Addon.ShowUI(fadeInTime, false)
   end
 end)
-
 
 
 

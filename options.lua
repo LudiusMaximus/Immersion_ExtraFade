@@ -6,12 +6,33 @@ local defaults = {
 
   hideFrameRate          = true,
   hideFrameRateCinematic = true,
-  hideAlertFrame         = false,
-  hideChatFrame          = false,
-  hideTrackingBar        = false,
+  keepAlertFrames        = true,
+  keepChatFrame          = true,
+  keepTrackingBar        = true,
   trackingBarAlpha       = 0.33,
 
 }
+
+
+local function ModernizeProfile()
+  if not IEF_Config then return end
+  
+  if IEF_Config.hideAlertFrame ~= nil then
+    IEF_Config.keepAlertFrames = not IEF_Config.hideAlertFrame
+    IEF_Config.hideAlertFrame = nil
+  end
+  
+  if IEF_Config.hideChatFrame ~= nil then
+    IEF_Config.keepChatFrame = not IEF_Config.hideChatFrame
+    IEF_Config.keepChatFrame = nil
+  end
+  
+  if IEF_Config.hideTrackingBar ~= nil then
+    IEF_Config.keepTrackingBar = not IEF_Config.hideTrackingBar
+    IEF_Config.keepTrackingBar = nil
+  end
+end
+
 
 
 local optionsTable = {
@@ -46,38 +67,38 @@ local optionsTable = {
 
     nl0 = {order = 20, type = "description", name = " ",},
 
-    hideAlertFrame = {
+    keepAlertFrames = {
       order = 25,
       type = 'toggle',
-      name = "Hide Alert Frames",
+      name = "Keep Alert Frames",
       desc = "Uncheck this to see the alert frames (e.g. Covenant Renown or when completing achievements) during Immersion's \"Hide Interface\"!",
       width = "normal",
-      get = function() return IEF_Config.hideAlertFrame end,
-      set = function(_, newValue) IEF_Config.hideAlertFrame = newValue end,
+      get = function() return IEF_Config.keepAlertFrames end,
+      set = function(_, newValue) IEF_Config.keepAlertFrames = newValue end,
     },
 
     nl1 = {order = 27, type = "description", name = " ",},
 
-    hideChatFrame = {
+    keepChatFrame = {
       order = 30,
       type = 'toggle',
-      name = "Hide Chat Frame",
+      name = "Keep Chat Frame",
       desc = "Uncheck this to keep the chat frame during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
       width = "normal",
-      get = function() return IEF_Config.hideChatFrame end,
-      set = function(_, newValue) IEF_Config.hideChatFrame = newValue end,
+      get = function() return IEF_Config.keepChatFrame end,
+      set = function(_, newValue) IEF_Config.keepChatFrame = newValue end,
     },
 
     nl2 = {order = 40, type = "description", name = " ",},
 
-    hideTrackingBar = {
+    keepTrackingBar = {
       order = 50,
       type = 'toggle',
-      name = "Hide Tracking Bars",
+      name = "Keep Tracking Bars",
       desc = "Uncheck this to keep the tracking bars (XP, AP, Reputation) during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
       width = "normal",
-      get = function() return IEF_Config.hideTrackingBar end,
-      set = function(_, newValue) IEF_Config.hideTrackingBar = newValue end,
+      get = function() return IEF_Config.keepTrackingBar end,
+      set = function(_, newValue) IEF_Config.keepTrackingBar = newValue end,
     },
 
     nl3 = {order = 60, type = "description", name = " ",},
@@ -87,7 +108,7 @@ local optionsTable = {
       type = 'range',
       name = "Tracking bar opacity during NPC intaraction",
       desc = "Only partially fade out the tracking bars. Hovering over them brings them to full opacity.",
-      disabled = function() return IEF_Config.hideTrackingBar end,
+      disabled = function() return not IEF_Config.keepTrackingBar end,
       min = .01,
       max = 1,
       step = .01,
@@ -144,6 +165,8 @@ end
 
 
 function L:InitializeOptions()
+
+  ModernizeProfile()
 
   LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("Immersion ExtraFade", optionsTable)
   self.optionsMenu = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Immersion ExtraFade", "Immersion ExtraFade")
