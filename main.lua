@@ -19,11 +19,12 @@ gossipShowFrame:RegisterEvent("QUEST_DETAIL")
 gossipShowFrame:RegisterEvent("QUEST_GREETING")
 gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(_, event)
-  -- print("gossipShowFrame", event)
+  -- print("gossipShowFrame", ImmersionFrame:IsShown(), event)
+  
+  if not ImmersionFrame or not ImmersionFrame:IsShown() then return end
   
   -- Immersion always fades the UI to 0.
   IEF_Config.UIParentAlpha = 0
-  
   Addon.HideUI(fadeOutTime, IEF_Config)
 end)
 
@@ -35,11 +36,21 @@ gossipCloseFrame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat.
 gossipCloseFrame:RegisterEvent("PLAYER_REGEN_ENABLED") -- Exiting combat.
 gossipCloseFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipCloseFrame", event)
+  
+  -- If combat starts and the UI is faded, we show the protected frames again,
+  -- just do not raise their opacity yet.
   if event == "PLAYER_REGEN_DISABLED" then
-    Addon.ShowUI(0, true)
+    if ImmersionFrame and ImmersionFrame:IsShown() then
+      Addon.ShowUI(0, true)
+    end
+  
+  -- If combat ends while the UI is faded, we hide the protected frames again.
   elseif event == "PLAYER_REGEN_ENABLED" then
-    IEF_Config.UIParentAlpha = 0
-    Addon.HideUI(0, IEF_Config)
+    if ImmersionFrame and ImmersionFrame:IsShown() then
+      IEF_Config.UIParentAlpha = 0
+      Addon.HideUI(0, IEF_Config)
+    end
+    
   else
     Addon.ShowUI(fadeInTime, false)
   end
@@ -54,8 +65,8 @@ local framerateWasShown = false
 -- If we somehow missed to show the frames again, we do it here!
 local emergencyFrame = CreateFrame("Frame")
 emergencyFrame:SetScript("onUpdate", function()
-  if UIParent:GetAlpha() == 1 and Addon.uiHiddenTime > 0 and Addon.uiHiddenTime < GetTime() and not cinematicRunning then
-    -- print("Emergency show")
+  if (not ImmersionFrame or not ImmersionFrame:IsShown()) and Addon.uiHiddenTime > 0 and Addon.uiHiddenTime < GetTime() and not cinematicRunning then
+    -- print("Emergency show", Addon.uiHiddenTime)
     Addon.ShowUI(0, false)
   end
 end)
