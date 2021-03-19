@@ -272,8 +272,10 @@ local function ConditionalShow(frame)
       -- while showing the actual PartyMemberFrame.
       if string_find(frame:GetName(), "^PartyMemberFrame(%d+)$") then
 
-        -- Only if we are in a party.
-        if UnitInParty("player") then
+        -- Only if we are in a party that is not a raid.
+        -- (Use CompactRaidFrameManager:IsShown() instead of UnitInRaid("player") because people might use
+        -- an addon like SoloRaidFrame to show the raid frame even while not in raid.)
+        if UnitInParty("player") and not CompactRaidFrameManager:IsShown() then
           -- Only for as many frames as there are party members.
           local numGroupMembers = GetNumGroupMembers()
           local frameNumber = tonumber(string.match(frame:GetName(), "^PartyMemberFrame(%d+)"))
@@ -293,7 +295,8 @@ local function ConditionalShow(frame)
       -- Use CompactRaidFrameManager:IsShown() instead of UnitInRaid("player") because people might use
       -- an addon like SoloRaidFrame to show the raid frame even while not in raid.
       if CompactRaidFrameManager:IsShown() then
-        -- TODO: Ideally do something here as well to handle frames that are added or removed during NPC interaction...
+        -- TODO: Do something here as well to handle frames that are added or removed during NPC interaction...
+        -- Especially removed frames will be shown again when NPC interaction is over, causing mouseover errors!
         frame:Show()
       end
 
