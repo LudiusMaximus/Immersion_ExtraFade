@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 11307
 ## Version: @project-version@
 ## Title: Immersion ExtraFade
 ## Author: LudiusMaximus
@@ -7,7 +7,7 @@
 ## OptionalDeps: Bartender4, GW2_UI
 ## SavedVariables: IEF_Config
 ## X-Curse-Project-ID: 362188
-## X-WoWI-ID: 123
+## X-WoWI-ID: 25527
 ## X-Donate: PayPal:ludiusmaximus@gmail.com
 ## X-License: The MIT License (MIT)
 
