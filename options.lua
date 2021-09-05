@@ -11,22 +11,24 @@ local defaults = {
   keepTrackingBar        = true,
   trackingBarAlpha       = 0.33,
 
+  hideNpcPortrait        = false,
+
 }
 
 
 local function ModernizeProfile()
   if not IEF_Config then return end
-  
+
   if IEF_Config.hideAlertFrame ~= nil then
     IEF_Config.keepAlertFrames = not IEF_Config.hideAlertFrame
     IEF_Config.hideAlertFrame = nil
   end
-  
+
   if IEF_Config.hideChatFrame ~= nil then
     IEF_Config.keepChatFrame = not IEF_Config.hideChatFrame
     IEF_Config.keepChatFrame = nil
   end
-  
+
   if IEF_Config.hideTrackingBar ~= nil then
     IEF_Config.keepTrackingBar = not IEF_Config.hideTrackingBar
     IEF_Config.keepTrackingBar = nil
@@ -72,7 +74,7 @@ local optionsTable = {
       type = 'toggle',
       name = "Keep Alert Frames",
       desc = "Uncheck this to see the alert frames (e.g. Covenant Renown or when completing achievements) during Immersion's \"Hide Interface\"!",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.keepAlertFrames end,
       set = function(_, newValue) IEF_Config.keepAlertFrames = newValue end,
     },
@@ -84,7 +86,7 @@ local optionsTable = {
       type = 'toggle',
       name = "Keep Chat Frame",
       desc = "Uncheck this to keep the chat frame during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.keepChatFrame end,
       set = function(_, newValue) IEF_Config.keepChatFrame = newValue end,
     },
@@ -96,7 +98,7 @@ local optionsTable = {
       type = 'toggle',
       name = "Keep Tracking Bars",
       desc = "Uncheck this to keep the tracking bars (XP, AP, Reputation) during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.keepTrackingBar end,
       set = function(_, newValue) IEF_Config.keepTrackingBar = newValue end,
     },
@@ -118,9 +120,23 @@ local optionsTable = {
     },
 
     nl4 = {order = 80, type = "description", name = " ",},
+    nl5 = {order = 85, type = "description", name = " ",},
+
+    hideNpcPortrait = {
+      order = 90,
+      type = 'toggle',
+      name = "Hide NPC Portrait in Immersion Frame",
+      desc = "Only show quest text in the Immersion frame. This can help to focus on the NPCs in the game world while interacting with them.",
+      width = "double",
+      get = function() return IEF_Config.hideNpcPortrait end,
+      set = function(_, newValue) IEF_Config.hideNpcPortrait = newValue end,
+    },
+
+    nl6 = {order = 100, type = "description", name = " ",},
+    nl7 = {order = 105, type = "description", name = " ",},
 
     restoreDefaults = {
-      order = 90,
+      order = 110,
       type = 'execute',
       name = "Restore defaults",
       desc = "Restore settings to the preference of the developer.",
@@ -170,6 +186,6 @@ function L:InitializeOptions()
 
   LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("Immersion ExtraFade", optionsTable)
   self.optionsMenu = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Immersion ExtraFade", "Immersion ExtraFade")
-  
+
 end
 

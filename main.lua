@@ -20,9 +20,19 @@ gossipShowFrame:RegisterEvent("QUEST_GREETING")
 gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipShowFrame", ImmersionFrame:IsShown(), event)
-  
+
   if not ImmersionFrame or not ImmersionFrame:IsShown() then return end
-  
+
+
+  if IEF_Config.hideNpcPortrait then
+    ImmersionFrame.TalkBox.PortraitFrame:Hide()
+    ImmersionFrame.TalkBox.MainFrame.Model:Hide()
+    ImmersionFrame.TalkBox.MainFrame.Overlay:Hide()
+
+    -- /run print(ImmersionFrame.TalkBox.NameFrame.Name:GetPoint(1))
+    ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPLEFT", 24, -19)
+  end
+
   -- Immersion always fades the UI to 0.
   IEF_Config.UIParentAlpha = 0
   Addon.HideUI(fadeOutTime, IEF_Config)
@@ -36,21 +46,21 @@ gossipCloseFrame:RegisterEvent("PLAYER_REGEN_DISABLED") -- Entering combat.
 gossipCloseFrame:RegisterEvent("PLAYER_REGEN_ENABLED") -- Exiting combat.
 gossipCloseFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipCloseFrame", event)
-  
+
   -- If combat starts and the UI is faded, we show the protected frames again,
   -- just do not raise their opacity yet.
   if event == "PLAYER_REGEN_DISABLED" then
     if ImmersionFrame and ImmersionFrame:IsShown() then
       Addon.ShowUI(0, true)
     end
-  
+
   -- If combat ends while the UI is faded, we hide the protected frames again.
   elseif event == "PLAYER_REGEN_ENABLED" then
     if ImmersionFrame and ImmersionFrame:IsShown() then
       IEF_Config.UIParentAlpha = 0
       Addon.HideUI(0, IEF_Config)
     end
-    
+
   else
     Addon.ShowUI(fadeInTime, false)
   end
