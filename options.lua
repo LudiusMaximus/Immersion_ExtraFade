@@ -103,8 +103,6 @@ local optionsTable = {
       set = function(_, newValue) IEF_Config.keepTrackingBar = newValue end,
     },
 
-    nl3 = {order = 60, type = "description", name = " ",},
-
     trackingBarAlpha = {
       order = 70,
       type = 'range',
