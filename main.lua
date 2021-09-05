@@ -193,6 +193,16 @@ local function GossipShowFunction()
   gossipShown = GetTime()
 
 
+  if IEF_Config.hideNpcPortrait then
+    ImmersionFrame.TalkBox.PortraitFrame:Hide()
+    ImmersionFrame.TalkBox.MainFrame.Model:Hide()
+    ImmersionFrame.TalkBox.MainFrame.Overlay:Hide()
+
+    -- /run print(ImmersionFrame.TalkBox.NameFrame.Name:GetPoint(1))
+    ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPLEFT", 24, -19)
+  end
+
+
   if IEF_Config.hideFrameRate then
     ConditionalFadeOutTo(FramerateLabel, 0)
     ConditionalFadeOutTo(FramerateText, 0)

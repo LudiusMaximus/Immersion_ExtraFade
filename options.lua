@@ -11,6 +11,8 @@ local defaults = {
   hideTrackingBar        = false,
   trackingBarAlpha       = 0.33,
 
+  hideNpcPortrait        = false,
+
 }
 
 
@@ -51,7 +53,7 @@ local optionsTable = {
       type = 'toggle',
       name = "Hide Chat Frame",
       desc = "Uncheck this to keep the chat frame during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.hideChatFrame end,
       set = function(_, newValue) IEF_Config.hideChatFrame = newValue end,
     },
@@ -63,7 +65,7 @@ local optionsTable = {
       type = 'toggle',
       name = "Hide Tracking Bars",
       desc = "Uncheck this to keep the tracking bars (XP, AP, Reputation) during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
-      width = "normal",
+      width = "double",
       get = function() return IEF_Config.hideTrackingBar end,
       set = function(_, newValue) IEF_Config.hideTrackingBar = newValue end,
     },
@@ -85,9 +87,23 @@ local optionsTable = {
     },
 
     nl4 = {order = 80, type = "description", name = " ",},
+    nl5 = {order = 85, type = "description", name = " ",},
+
+    hideNpcPortrait = {
+      order = 90,
+      type = 'toggle',
+      name = "Hide NPC Portrait in Immersion Frame",
+      desc = "Only show quest text in the Immersion frame. This can help to focus on the NPCs in the game world while interacting with them.",
+      width = "double",
+      get = function() return IEF_Config.hideNpcPortrait end,
+      set = function(_, newValue) IEF_Config.hideNpcPortrait = newValue end,
+    },
+
+    nl6 = {order = 100, type = "description", name = " ",},
+    nl7 = {order = 105, type = "description", name = " ",},
 
     restoreDefaults = {
-      order = 90,
+      order = 110,
       type = 'execute',
       name = "Restore defaults",
       desc = "Restore settings to the preference of the developer.",
