@@ -21,7 +21,7 @@ gossipShowFrame:RegisterEvent("QUEST_PROGRESS")
 gossipShowFrame:SetScript("OnEvent", function(_, event)
   -- print("gossipShowFrame", ImmersionFrame:IsShown(), event)
 
-  if not ImmersionFrame or not ImmersionFrame:IsShown() then return end
+  if not ImmersionFrame or not ImmersionFrame:IsShown() or IsOptionFrameOpen() then return end
 
 
   if IEF_Config.hideNpcPortrait then
@@ -75,6 +75,8 @@ local framerateWasShown = false
 -- If we somehow missed to show the frames again, we do it here!
 local emergencyFrame = CreateFrame("Frame")
 emergencyFrame:SetScript("onUpdate", function()
+  -- Uncomment this for debugging.
+  -- if not Addon.uiHiddenTime then return end
   if (not ImmersionFrame or not ImmersionFrame:IsShown()) and Addon.uiHiddenTime > 0 and Addon.uiHiddenTime < GetTime() and not cinematicRunning then
     -- print("Emergency show", Addon.uiHiddenTime)
     Addon.ShowUI(0, false)
