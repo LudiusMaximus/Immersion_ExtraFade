@@ -2,10 +2,7 @@ local _, Addon = ...
 
 
 -- For debugging:
--- local debugFrameName = "PartyMemberFrame3"
-
-
-
+-- local debugFrame = MinimapCluster
 
 
 -- Have to store uiHiddenTime and currentConfig globally,
@@ -37,10 +34,14 @@ local collectedAlertFrames = ludius_UiHideModule.collectedAlertFrames
 -- Accepted options for config argument of HideUI():
 --   config.hideFrameRate
 --   config.keepAlertFrames
---   config.keepMinimap
 --   config.keepTooltip
+--   config.keepMinimap
 --   config.keepChatFrame
+--   config.keepPartyRaidFrame
 --   config.keepTrackingBar
+--   config.keepEncounterBar
+--   config.keepCustomFrames
+--   config.customFramesToKeep
 --   config.UIParentAlpha     (while faded out)
 
 
@@ -56,14 +57,15 @@ local GetTime            = _G.GetTime
 local InCombatLockdown   = _G.InCombatLockdown
 local UnitInParty        = _G.UnitInParty
 
-local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
+-- TODO: Adopt new UI!
+-- local CompactRaidFrameContainer = _G.CompactRaidFrameContainer
 
 
 
 
 
 -- The user can define custom frames to keep visible.
--- To prevent these user settings from clashing with the other frames
+-- To prevent these user settings from clashing with the other frames,
 -- we store the names of frames handled by the addon.
 
 -- Frames whose visibility is defined via explicit UI checkboxes/flags.
@@ -87,32 +89,44 @@ local flagFrames = {
   ["AceGUITooltip"] = true,
   ["AceConfigDialogTooltip"] = true,
 
-  -- config.keepChatFrame
-  ["ChatFrame1"] = true,
-  ["ChatFrame1Tab"] = true,
-  ["ChatFrame1EditBox"] = true,
-  ["GwChatContainer1"] = true,
 
   -- config.keepTrackingBar
-  ["BT4StatusBarTrackingManager"] = true,
+  ["BT4BarStatus"] = true,
   ["StatusTrackingBarManager"] = true,
   ["GwExperienceFrame"] = true,
+
+  -- config.keepEncounterBar
+  ["EncounterBar"] = true,
 }
+
+
+
+-- config.keepChatFrame
+for i = 1, 12, 1 do
+  flagFrames["ChatFrame" .. i] = true
+  flagFrames["ChatFrame" .. i .. "Tab"] = true
+  flagFrames["ChatFrame" .. i .. "EditBox"] = true
+  flagFrames["GwChatContainer" .. i] = true
+end
+
 
 -- config.keepPartyRaidFrame
 for i = 1, 4, 1 do
   flagFrames["PartyMemberFrame" .. i] = true
   flagFrames["PartyMemberFrame" .. i .. "NotPresentIcon"] = true
 end
-flagFrames["CompactRaidFrameContainer"] = true
-for i = 1, 40, 1 do
-  flagFrames["CompactRaidFrame" .. i .. "Background"] = true
-  flagFrames["CompactRaidFrame" .. i .. "HorizTopBorder"] = true
-  flagFrames["CompactRaidFrame" .. i .. "HorizBottomBorder"] = true
-  flagFrames["CompactRaidFrame" .. i .. "VertLeftBorder"] = true
-  flagFrames["CompactRaidFrame" .. i .. "VertRightBorder"] = true
-  flagFrames["CompactRaidFrame" .. i .. "SelectionHighlight"] = true
-end
+
+
+-- TODO: Adopt new UI!
+-- flagFrames["CompactRaidFrameContainer"] = true
+-- for i = 1, 40, 1 do
+  -- flagFrames["CompactRaidFrame" .. i .. "Background"] = true
+  -- flagFrames["CompactRaidFrame" .. i .. "HorizTopBorder"] = true
+  -- flagFrames["CompactRaidFrame" .. i .. "HorizBottomBorder"] = true
+  -- flagFrames["CompactRaidFrame" .. i .. "VertLeftBorder"] = true
+  -- flagFrames["CompactRaidFrame" .. i .. "VertRightBorder"] = true
+  -- flagFrames["CompactRaidFrame" .. i .. "SelectionHighlight"] = true
+-- end
 
 
 
@@ -124,6 +138,10 @@ local defaultHiddenFrames = {
   ["TargetFrame"] = true,
   ["BuffFrame"] = true,
   ["DebuffFrame"] = true,
+  ["ObjectiveTrackerFrame"] = true,
+  -- TODO: Would have to fade every single 3D model separately.
+  ["WardrobeFrame"] = true,
+  ["CollectionsJournal"] = true,
 }
 
 
@@ -179,7 +197,7 @@ if not ludius_FADEFRAMES then ludius_FADEFRAMES = {} end
 local frameFadeManager = CreateFrame("FRAME")
 
 local function UIFrameFadeRemoveFrame(frame)
-	tDeleteItem(ludius_FADEFRAMES, frame)
+  tDeleteItem(ludius_FADEFRAMES, frame)
 end
 
 
@@ -190,72 +208,82 @@ end
 local lastUpdate
 local function UIFrameFade_OnUpdate(self)
 
-	local elapsed = 0
-	if lastUpdate then
-		elapsed = GetTime() - lastUpdate
-	end
-	lastUpdate = GetTime()
+  local elapsed = 0
+  if lastUpdate then
+    elapsed = GetTime() - lastUpdate
+  end
+  lastUpdate = GetTime()
 
-	local index = 1
-	local frame, fadeInfo
-	while ludius_FADEFRAMES[index] do
-		frame = ludius_FADEFRAMES[index]
-		fadeInfo = ludius_FADEFRAMES[index].fadeInfo
-		-- Reset the timer if there isn't one, this is just an internal counter
-		if not fadeInfo.fadeTimer then
-			fadeInfo.fadeTimer = 0
-		end
-		fadeInfo.fadeTimer = fadeInfo.fadeTimer + elapsed
+  local index = 1
+  local frame, fadeInfo
+  while ludius_FADEFRAMES[index] do
+    frame = ludius_FADEFRAMES[index]
+    fadeInfo = frame.fadeInfo
+    -- Reset the timer if there isn't one, this is just an internal counter
+    if not fadeInfo.fadeTimer then
+      fadeInfo.fadeTimer = 0
+    end
+    fadeInfo.fadeTimer = fadeInfo.fadeTimer + elapsed
 
-		-- If the fadeTimer is less then the desired fade time then set the alpha otherwise hold the fade state, call the finished function, or just finish the fade
-		if fadeInfo.fadeTimer < fadeInfo.timeToFade then
-			if fadeInfo.mode == "IN" then
-				frame:SetAlpha((fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
-			elseif fadeInfo.mode == "OUT" then
-				frame:SetAlpha(((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha) + fadeInfo.endAlpha)
-			end
-		else
-			frame:SetAlpha(fadeInfo.endAlpha)
+    -- If the fadeTimer is less then the desired fade time then set the alpha otherwise hold the fade state, call the finished function, or just finish the fade
+    if tonumber(fadeInfo.fadeTimer) < tonumber(fadeInfo.timeToFade) then
+      if fadeInfo.mode == "IN" then
+        frame:SetAlpha((fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
+      elseif fadeInfo.mode == "OUT" then
+        frame:SetAlpha(((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha) + fadeInfo.endAlpha)
+      end
+
+      -- if frame == debugFrame then print("UIFrameFade_OnUpdate", elapsed, frame:GetName(), fadeInfo.fadeTimer, fadeInfo.timeToFade, "Setting alpha", frame:GetAlpha()) end
+
+    else
+
+      -- if frame == debugFrame then print("Last call of UIFrameFade_OnUpdate.", frame:GetName(), "Setting endAlpha", fadeInfo.endAlpha) end
+
+      frame:SetAlpha(fadeInfo.endAlpha)
       -- Complete the fade and call the finished function if there is one
       UIFrameFadeRemoveFrame(frame)
       if fadeInfo.finishedFunc then
         fadeInfo.finishedFunc(fadeInfo.finishedArg1, fadeInfo.finishedArg2, fadeInfo.finishedArg3, fadeInfo.finishedArg4)
         fadeInfo.finishedFunc = nil
       end
-		end
+    end
 
-		index = index + 1
-	end
+    index = index + 1
+  end
 
-	if #ludius_FADEFRAMES == 0 then
-		self:SetScript("OnUpdate", nil)
-		lastUpdate = nil
-	end
+  if #ludius_FADEFRAMES == 0 then
+    self:SetScript("OnUpdate", nil)
+    lastUpdate = nil
+  end
 end
 
 local function UIFrameFade(frame, fadeInfo)
-	if not frame then return end
+  if not frame then return end
 
   -- We make sure that we always call this with mode, startAlpha and endAlpha.
   assert(fadeInfo.mode)
   assert(fadeInfo.startAlpha)
   assert(fadeInfo.endAlpha)
 
-  -- if frame:GetName() == debugFrameName then print("UIFrameFade", frame:GetName(), fadeInfo.mode, fadeInfo.startAlpha, fadeInfo.endAlpha) end
+  -- if frame == debugFrame then print("UIFrameFade", frame:GetName(), fadeInfo.mode, fadeInfo.startAlpha, fadeInfo.endAlpha) end
 
   frame.fadeInfo = fadeInfo
-	frame:SetAlpha(fadeInfo.startAlpha)
+  frame:SetAlpha(fadeInfo.startAlpha)
 
-	local index = 1
-	while ludius_FADEFRAMES[index] do
-		-- If frame is already set to fade then return
-		if ludius_FADEFRAMES[index] == frame then
-			return
-		end
-		index = index + 1
-	end
-	tinsert(ludius_FADEFRAMES, frame)
-	frameFadeManager:SetScript("OnUpdate", UIFrameFade_OnUpdate)
+  local index = 1
+  while ludius_FADEFRAMES[index] do
+    -- If frame is already set to fade then return
+    if ludius_FADEFRAMES[index] == frame then
+      return
+    end
+    index = index + 1
+  end
+  tinsert(ludius_FADEFRAMES, frame)
+
+  if #ludius_FADEFRAMES == 1 then
+    frameFadeManager:SetScript("OnUpdate", UIFrameFade_OnUpdate)
+  end
+
 end
 
 
@@ -274,6 +302,7 @@ local function SetMouseOverAlpha(frame)
       -- In case we are currently fading out,
       -- interrupt the fade out in progress.
       UIFrameFadeRemoveFrame(frame)
+      frame.ludius_alreadyOnIt = nil
       frame:SetAlpha(1)
 
     -- Otherwise use the faded out alpha.
@@ -285,26 +314,27 @@ local function SetMouseOverAlpha(frame)
 end
 
 local function SetMouseOverFading(barManager)
+
+  -- Have to do this for the single bars.
+  -- Otherwise the text does not pop up any more when hovering over the bars.
   for _, frame in pairs(barManager.bars) do
-    frame:HookScript("OnEnter", function()
-      barManager.ludius_mouseOver = true
-      SetMouseOverAlpha(barManager)
-    end)
-    frame:HookScript("OnLeave", function()
-      barManager.ludius_mouseOver = false
-      SetMouseOverAlpha(barManager)
-    end)
+    if not frame.ludius_hooked then
+      frame:HookScript("OnEnter", function()
+        barManager.ludius_mouseOver = true
+        SetMouseOverAlpha(barManager)
+      end)
+      frame:HookScript("OnLeave", function()
+        barManager.ludius_mouseOver = false
+        SetMouseOverAlpha(barManager)
+      end)
+      frame.ludius_hooked = true
+    end
   end
+  
 end
 
+hooksecurefunc(StatusTrackingBarManager, "AddBarFromTemplate", SetMouseOverFading)
 
-if Bartender4 then
-  -- hooksecurefunc(Bartender4:GetModule("StatusTrackingBar"), "OnEnable", function()
-    -- SetMouseOverFading(BT4StatusBarTrackingManager)
-  -- end)
-else
-  hooksecurefunc(StatusTrackingBarManager, "AddBarFromTemplate", SetMouseOverFading)
-end
 
 
 if IsAddOnLoaded("GW2_UI") then
@@ -348,9 +378,8 @@ local function GameTooltipHider(self)
   end
 end
 
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, GameTooltipHider)
 GameTooltip:HookScript("OnTooltipSetDefaultAnchor", GameTooltipHider)
--- TODO: Removed in 10.0. Do we still need it? https://wowpedia.fandom.com/wiki/Patch_10.0.2/API_changes
--- GameTooltip:HookScript("OnTooltipSetItem", GameTooltipHider)
 GameTooltip:HookScript("OnShow", GameTooltipHider)
 
 
@@ -358,7 +387,7 @@ GameTooltip:HookScript("OnShow", GameTooltipHider)
 local function ConditionalHide(frame)
   if not frame then return end
 
-  -- if frame:GetName() == debugFrameName then print("ConditionalHide", frame:GetName(), frame:GetParent():GetName(), frame:IsIgnoringParentAlpha()) end
+  -- if frame == debugFrame then print("ConditionalHide", frame:GetName(), frame:GetParent():GetName(), frame:IsIgnoringParentAlpha()) end
 
   -- Checking for combat lockdown is not this function's concern.
   -- Functions calling it must make sure, it is not  called in combat lockdown.
@@ -369,7 +398,7 @@ local function ConditionalHide(frame)
   end
 
   if frame.ludius_shownBeforeFadeOut == nil then
-    -- if frame:GetName() == debugFrameName then print("Remember it was shown", frame:IsShown()) end
+    -- if frame == debugFrame then print("Remember it was shown", frame:IsShown()) end
     frame.ludius_shownBeforeFadeOut = frame:IsShown()
   end
 
@@ -382,7 +411,7 @@ end
 local function ConditionalShow(frame)
   if not frame or frame.ludius_shownBeforeFadeOut == nil then return end
 
-  -- if frame:GetName() == debugFrameName then print("ConditionalShow", frame:GetName(), frame.ludius_shownBeforeFadeOut) end
+  -- if frame == debugFrame then print("ConditionalShow", frame:GetName(), frame.ludius_shownBeforeFadeOut) end
 
   if frame:IsProtected() and InCombatLockdown() then
     print("ERROR: Should not try to show", frame:GetName(), "in combat lockdown!")
@@ -421,18 +450,19 @@ local function ConditionalShow(frame)
       end
 
 
+    -- TODO: Adopt new UI.
     -- Only show the CompactRaidFrameManager, if the player is still in a party.
-    elseif frame == CompactRaidFrameManager then
+    -- elseif frame == CompactRaidFrameManager then
 
-      -- (Again also use CompactRaidFrameContainer:IsShown() because people might use
-      -- an addon like SoloRaidFrame to show the raid frame even while not in raid.)
-      if UnitInParty("player") or CompactRaidFrameContainer:IsShown() then
-        frame:Show()
-      end
+      -- -- (Again also use CompactRaidFrameContainer:IsShown() because people might use
+      -- -- an addon like SoloRaidFrame to show the raid frame even while not in raid.)
+      -- if UnitInParty("player") or CompactRaidFrameContainer:IsShown() then
+        -- frame:Show()
+      -- end
 
 
     elseif frame.ludius_shownBeforeFadeOut then
-      -- if frame:GetName() == debugFrameName then print("Have to show it again!") end
+      -- if frame == debugFrame then print("Have to show it again!") end
       frame:Show()
     end
 
@@ -442,26 +472,50 @@ local function ConditionalShow(frame)
 end
 
 
+
+
+-- To prevent other addons (Immersion, I'm looking in your direction) from
+-- setting Minimap's and MinimapCluster's ignoreParentAlpha to false, when DynamicCam does not.
+local function ParentAlphaGuard(self, ignoreParentAlpha)
+  -- print(self:GetName(), "SetIgnoreParentAlpha", ignoreParentAlpha, self.ludius_intendedIgnoreParentAlpha)
+  if self.ludius_intendedIgnoreParentAlpha ~= nil and ignoreParentAlpha ~= self.ludius_intendedIgnoreParentAlpha then
+      -- print("no")
+      self:SetIgnoreParentAlpha(self.ludius_intendedIgnoreParentAlpha)
+  -- else
+      -- print("ok")
+  end
+end
+
+hooksecurefunc(MinimapCluster, "SetIgnoreParentAlpha", ParentAlphaGuard)
+hooksecurefunc(Minimap, "SetIgnoreParentAlpha", ParentAlphaGuard)
+
+
+
+
 -- To restore frames to their pre-hide ignore-parent-alpha state,
 -- we remember it in the ludius_ignoreParentAlphaBeforeFadeOut variable.
 local function ConditionalSetIgnoreParentAlpha(frame, ignoreParentAlpha)
-  -- print("ConditionalSetIgnoreParentAlpha", frame, ignoreParentAlpha)
+  -- if frame == debugFrame then print("ConditionalSetIgnoreParentAlpha", ignoreParentAlpha) end
 
-  if not frame then return end
+  if not frame or ignoreParentAlpha == nil then return end
 
   if frame.ludius_ignoreParentAlphaBeforeFadeOut == nil then
     frame.ludius_ignoreParentAlphaBeforeFadeOut = frame:IsIgnoringParentAlpha()
   end
 
   if frame:IsIgnoringParentAlpha() ~= ignoreParentAlpha then
+    frame.ludius_intendedIgnoreParentAlpha = ignoreParentAlpha
     frame:SetIgnoreParentAlpha(ignoreParentAlpha)
   end
 end
 
 local function ConditionalResetIgnoreParentAlpha(frame)
+  -- if frame == debugFrame then print("ConditionalSetIgnoreParentAlpha", ignoreParentAlpha) end
+
   if not frame or frame.ludius_ignoreParentAlphaBeforeFadeOut == nil then return end
 
   if frame:IsIgnoringParentAlpha() ~= frame.ludius_ignoreParentAlphaBeforeFadeOut then
+    frame.ludius_intendedIgnoreParentAlpha = frame.ludius_ignoreParentAlphaBeforeFadeOut
     frame:SetIgnoreParentAlpha(frame.ludius_ignoreParentAlphaBeforeFadeOut)
   end
   frame.ludius_ignoreParentAlphaBeforeFadeOut = nil
@@ -519,8 +573,6 @@ end
 
 
 
-
-
 -- targetIgnoreParentAlpha == true:  frame ignores parent alpha, and itself fades to targetAlpha (maybe different from UIParent's alpha).
 -- targetIgnoreParentAlpha == false: frame adheres to parent alpha, but gets hidden, if targetAlpha (UIParent's alpha) is 0.
 --
@@ -532,19 +584,24 @@ local function FadeOutFrame(frame, duration, targetIgnoreParentAlpha, targetAlph
 
   if not frame or targetIgnoreParentAlpha == nil then return end
 
-  assert(targetAlpha)
+  -- If another addon is already handling this, we don't touch it.
+  if frame.ludius_alreadyOnIt then
+    return
+  else
+    frame.ludius_alreadyOnIt = true
+  end
 
-  -- if frame:GetParent() ~= UIFrames then print(frame:GetName()) end
+  assert(targetAlpha)
 
   -- Prevent callback functions of currently active timers.
   UIFrameFadeRemoveFrame(frame)
 
-  -- if frame:GetName() == debugFrameName then print("FadeOutFrame", frame:GetName(), targetIgnoreParentAlpha, targetAlpha) end
+  -- if frame == debugFrame then print("FadeOutFrame", frame:GetName(), duration, targetIgnoreParentAlpha, frame:IsIgnoringParentAlpha(), targetAlpha, frame:GetAlpha()) end
 
   -- ludius_alphaBeforeFadeOut is only set, if this is a fresh FadeOutFrame().
-  -- It is set to nil after a FadeOutFrame is completed.
+  -- It is set to nil after a FadeOutFrame() is completed.
   -- Otherwise, we might falsely asume a wrong ludius_alphaBeforeFadeOut
-  -- value while a fadein is still in progress.
+  -- value while a fade-in is still in progress.
   if frame.ludius_alphaBeforeFadeOut == nil then
     frame.ludius_alphaBeforeFadeOut = frame:GetAlpha()
   end
@@ -555,15 +612,18 @@ local function FadeOutFrame(frame, duration, targetIgnoreParentAlpha, targetAlph
   fadeInfo.mode = "OUT"
   fadeInfo.timeToFade = duration
   fadeInfo.finishedArg1 = frame
-  fadeInfo.finishedFunc = function(finishedArg1)
-    -- if finishedArg1:GetName() == debugFrameName then print("Fade out finished", finishedArg1:GetName(), targetAlpha) end
-    if targetAlpha == 0 then
-      -- if finishedArg1:GetName() == debugFrameName then print("...and hiding!", targetAlpha) end
-      if not finishedArg1:IsProtected() or not InCombatLockdown() then
-        ConditionalHide(finishedArg1)
-      end
+  fadeInfo.finishedArg2 = targetAlpha
+  fadeInfo.finishedFunc = function(finishedArg1, finishedArg2)
+    -- if finishedArg1 == debugFrame then print("Fade out finished", finishedArg1:GetName(), finishedArg2) end
+    if finishedArg2 == 0 and (not finishedArg1:IsProtected() or not InCombatLockdown()) then
+      -- if finishedArg1 == debugFrame then print("...and hiding!", finishedArg2) end
+      ConditionalHide(finishedArg1)
     end
+    
+    finishedArg1.ludius_alreadyOnIt = nil
   end
+
+
 
 
   -- Frame should henceforth ignore parent alpha.
@@ -607,33 +667,45 @@ local function FadeOutFrame(frame, duration, targetIgnoreParentAlpha, targetAlph
     -- So we have to set the child's alpha to 1 at the same time as we stop ignoring
     -- parent alpha.
     if frame:IsIgnoringParentAlpha() then
+
       fadeInfo.startAlpha = frame:GetAlpha()
       fadeInfo.endAlpha = targetAlpha
 
-      fadeInfo.finishedFunc = function(finishedArg1)
-        -- if finishedArg1:GetName() == debugFrameName then print("Fade out finished", finishedArg1:GetName(), targetAlpha) end
-        frame:SetAlpha(1)
+      fadeInfo.finishedFunc = function(finishedArg1, finishedArg2)
+        -- if finishedArg1 == debugFrame then print("Fade out finished", finishedArg1:GetName(), finishedArg2) end
+        finishedArg1:SetAlpha(1)
         ConditionalSetIgnoreParentAlpha(finishedArg1, false)
-        if targetAlpha == 0 then
+        if finishedArg2 == 0 and (not finishedArg1:IsProtected() or not InCombatLockdown()) then
           ConditionalHide(finishedArg1)
         end
+        
+        finishedArg1.ludius_alreadyOnIt = nil
       end
 
     -- Frame was already adhering to parent alpha.
     -- We are not changing it.
     else
+
+      -- if frame == debugFrame then print("was already adhering to parent alpha") end
+
       fadeInfo.startAlpha = frame:GetAlpha()
       fadeInfo.endAlpha = frame:GetAlpha()
     end
 
   end
 
+
   -- Cannot rely on UIFrameFade to finish within the same frame.
   if duration == 0 then
     frame:SetAlpha(fadeInfo.endAlpha)
-    fadeInfo.finishedFunc(fadeInfo.finishedArg1)
+    fadeInfo.finishedFunc(frame, targetAlpha)
+
+  -- This is for some frames to not being shown in between situations that are both hiding them.
+  elseif (frame == MinimapCluster or frame == ObjectiveTrackerFrame) and targetAlpha == 0 and targetIgnoreParentAlpha == false and frame:GetParent():GetAlpha() == 0 and frame:IsShown() then
+    fadeInfo.finishedFunc(frame, targetAlpha)
+
   else
-    -- if frame:GetName() == debugFrameName then print("Starting fade with", fadeInfo.startAlpha, fadeInfo.endAlpha, fadeInfo.mode, fadeInfo.timeToFade) end
+    -- if frame == debugFrame then print("Starting fade with", fadeInfo.startAlpha, fadeInfo.endAlpha, fadeInfo.mode, fadeInfo.timeToFade) end
     UIFrameFade(frame, fadeInfo)
   end
 
@@ -644,13 +716,21 @@ local function FadeInFrame(frame, duration, enteringCombat)
 
   if not frame then return end
 
+  -- If another addon is already handling this, we don't touch it.
+  if frame.ludius_alreadyOnIt then
+    return
+  else
+    frame.ludius_alreadyOnIt = true
+  end
+
+
   -- Prevent callback functions of currently active timers.
   UIFrameFadeRemoveFrame(frame)
 
   -- Only do something if we have touched this frame before.
   if frame.ludius_shownBeforeFadeOut == nil and frame.ludius_alphaBeforeFadeOut == nil and frame.ludius_ignoreParentAlphaBeforeFadeOut == nil then return end
 
-  -- if frame:GetName() == debugFrameName then print("FadeInFrame", frame:GetName()) end
+  -- if frame == debugFrame then print("FadeInFrame", frame:GetName(), frame:IsIgnoringParentAlpha()) end
 
 
   if enteringCombat then
@@ -658,6 +738,7 @@ local function FadeInFrame(frame, duration, enteringCombat)
     if frame:IsProtected() then
       ConditionalShow(frame)
     end
+    frame.ludius_alreadyOnIt = nil
     -- But we do not yet do the fade in.
     return
   else
@@ -673,6 +754,7 @@ local function FadeInFrame(frame, duration, enteringCombat)
   fadeInfo.finishedFunc = function(finishedArg1)
       finishedArg1.ludius_alphaBeforeFadeOut = nil
       finishedArg1.ludius_alphaAfterFadeOut = nil
+      finishedArg1.ludius_alreadyOnIt = nil
     end
 
 
@@ -706,6 +788,7 @@ local function FadeInFrame(frame, duration, enteringCombat)
         ConditionalResetIgnoreParentAlpha(finishedArg1)
         finishedArg1.ludius_alphaBeforeFadeOut = nil
         finishedArg1.ludius_alphaAfterFadeOut = nil
+        finishedArg1.ludius_alreadyOnIt = nil
       end
 
     -- Frame was already adhering to parent alpha.
@@ -721,13 +804,13 @@ local function FadeInFrame(frame, duration, enteringCombat)
     fadeInfo.endAlpha = frame.ludius_alphaBeforeFadeOut or frame:GetAlpha()
   end
 
-  -- if frame:GetName() == debugFrameName then print("Starting fade with", fadeInfo.startAlpha, fadeInfo.endAlpha, fadeInfo.mode) end
+  -- if frame == debugFrame then print("Starting fade with", fadeInfo.startAlpha, fadeInfo.endAlpha, fadeInfo.mode) end
 
 
   -- Cannot rely on UIFrameFade to finish within the same frame.
   if duration == 0 then
     frame:SetAlpha(fadeInfo.endAlpha)
-    fadeInfo.finishedFunc(fadeInfo.finishedArg1)
+    fadeInfo.finishedFunc(frame)
   else
     UIFrameFade(frame, fadeInfo)
   end
@@ -738,6 +821,14 @@ local function FadeInFrame(frame, duration, enteringCombat)
 
 end
 
+
+-- So the GameTooltip stays hidden while UI is faded.
+local hideGameTooltip = nil
+GameTooltip:HookScript("OnShow", function(self)
+  if hideGameTooltip and self:GetOwner() == UIParent then
+    self:Hide()
+  end
+end)
 
 
 Addon.HideUI = function(fadeOutTime, config)
@@ -762,25 +853,38 @@ Addon.HideUI = function(fadeOutTime, config)
   -- Minimap is needed, because Immersion sets it to IgnoreParentAlpha.
   FadeOutFrame(Minimap, fadeOutTime, config.keepMinimap, config.keepMinimap and 1 or config.UIParentAlpha)
 
-  -- TODO: For GameTooltip it seems to only work the first time the tooltip is shown...
   FadeOutFrame(GameTooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
+  C_Timer.After(fadeOutTime, function() hideGameTooltip = (config.keepTooltip == false) end)
+
   FadeOutFrame(AceGUITooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
   FadeOutFrame(AceConfigDialogTooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
 
-  FadeOutFrame(ChatFrame1, fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
-  FadeOutFrame(ChatFrame1Tab, fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
-  FadeOutFrame(ChatFrame1EditBox, fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
-  FadeOutFrame(GwChatContainer1, fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
 
-  FadeOutFrame(BT4StatusBarTrackingManager, fadeOutTime, config.keepTrackingBar, config.keepTrackingBar and config.trackingBarAlpha or config.UIParentAlpha)
+  for i = 1, 12, 1 do
+    if _G["ChatFrame" .. i] then
+      FadeOutFrame(_G["ChatFrame" .. i], fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
+      FadeOutFrame(_G["ChatFrame" .. i .. "Tab"], fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
+      FadeOutFrame(_G["ChatFrame" .. i .. "EditBox"], fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
+    end
+
+    if _G["GwChatContainer" .. i] then
+      FadeOutFrame(_G["GwChatContainer" .. i], fadeOutTime, config.keepChatFrame, config.keepChatFrame and 1 or config.UIParentAlpha)
+    end
+  end
+
+
+  FadeOutFrame(BT4BarStatus, fadeOutTime, config.keepTrackingBar, config.keepTrackingBar and config.trackingBarAlpha or config.UIParentAlpha)
   FadeOutFrame(StatusTrackingBarManager, fadeOutTime, config.keepTrackingBar, config.keepTrackingBar and config.trackingBarAlpha or config.UIParentAlpha)
   FadeOutFrame(GwExperienceFrame, fadeOutTime, config.keepTrackingBar, config.keepTrackingBar and config.trackingBarAlpha or config.UIParentAlpha)
 
 
+  FadeOutFrame(EncounterBar, fadeOutTime, config.keepEncounterBar, config.keepEncounterBar and 1 or config.UIParentAlpha)
 
+
+  -- TODO: Adopt new UI.
   -- CompactRaidFrameManager:Hide() is disabled, if the addon SoloRaidFrame is used.
   -- But we are not taking care of this!
-  FadeOutFrame(CompactRaidFrameManager, fadeOutTime, config.keepPartyRaidFrame, config.keepPartyRaidFrame and 1 or config.UIParentAlpha)
+  -- FadeOutFrame(CompactRaidFrameManager, fadeOutTime, config.keepPartyRaidFrame, config.keepPartyRaidFrame and 1 or config.UIParentAlpha)
 
   for i = 1, 4, 1 do
     if _G["PartyMemberFrame" .. i] then
@@ -798,28 +902,29 @@ Addon.HideUI = function(fadeOutTime, config)
   end
 
 
+  -- TODO: Adopt new UI.
   -- Do not use GetNumGroupMembers() here, because as people join and leave the raid the frame numbers get mixed up.
-  for i = 1, 40, 1 do
-    if _G["CompactRaidFrame" .. i .. "Background"] then
+  -- for i = 1, 40, 1 do
+    -- if _G["CompactRaidFrame" .. i .. "Background"] then
 
-      -- These frames are by default ignoring their parent's (i.e. "CompactRaidFrame"..i's) alpha.
-      -- So we have to fade them out manually, when we want to hide the raid frame.
-      -- So we always set targetIgnoreParentAlpha to true.
-      if config.keepPartyRaidFrame == false then
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "Background"], fadeOutTime, true, config.UIParentAlpha)
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "HorizTopBorder"], fadeOutTime, true, config.UIParentAlpha)
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "HorizBottomBorder"], fadeOutTime, true, config.UIParentAlpha)
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "VertLeftBorder"], fadeOutTime, true, config.UIParentAlpha)
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "VertRightBorder"], fadeOutTime, true, config.UIParentAlpha)
-        FadeOutFrame(_G["CompactRaidFrame" .. i .. "SelectionHighlight"], fadeOutTime, true, config.UIParentAlpha)
+      -- -- These frames are by default ignoring their parent's (i.e. "CompactRaidFrame"..i's) alpha.
+      -- -- So we have to fade them out manually, when we want to hide the raid frame.
+      -- -- So we always set targetIgnoreParentAlpha to true.
+      -- if config.keepPartyRaidFrame == false then
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "Background"], fadeOutTime, true, config.UIParentAlpha)
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "HorizTopBorder"], fadeOutTime, true, config.UIParentAlpha)
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "HorizBottomBorder"], fadeOutTime, true, config.UIParentAlpha)
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "VertLeftBorder"], fadeOutTime, true, config.UIParentAlpha)
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "VertRightBorder"], fadeOutTime, true, config.UIParentAlpha)
+        -- FadeOutFrame(_G["CompactRaidFrame" .. i .. "SelectionHighlight"], fadeOutTime, true, config.UIParentAlpha)
 
-        -- I first thought, there is no need to fade out "CompactRaidFrame"..i, as it is taken care of through its parent
-        -- CompactRaidFrameManager. However, it turns out that the CompactRaidFrames produce tooltips again after the
-        -- raid roster changes. So we have to do this here!
-      end
+        -- -- I first thought, there is no need to fade out "CompactRaidFrame"..i, as it is taken care of through its parent
+        -- -- CompactRaidFrameManager. However, it turns out that the CompactRaidFrames produce tooltips again after the
+        -- -- raid roster changes. So we have to do this here!
+      -- end
 
-    end
-  end
+    -- end
+  -- end
 
 
   -- Non-configurable frames that we just want to hide in case UIParentAlpha is 0.
@@ -852,10 +957,10 @@ end
 -- This can be done when the intended ShowUI() is called.
 Addon.ShowUI = function(fadeInTime, enteringCombat)
 
-  -- print("ShowUI", fadeInTime, enteringCombat)
-
   -- Only do something once per closing.
   if Addon.uiHiddenTime == 0 then return end
+
+  -- print("ShowUI", fadeInTime, enteringCombat)
 
   if not enteringCombat then
     Addon.uiHiddenTime = 0
@@ -893,7 +998,7 @@ Addon.ShowUI = function(fadeInTime, enteringCombat)
 
 
   -- Fade in the (possibly only partially) faded status bar.
-  FadeInFrame(BT4StatusBarTrackingManager, fadeInTime, enteringCombat)
+  FadeInFrame(BT4BarStatus, fadeInTime, enteringCombat)
   FadeInFrame(StatusTrackingBarManager, fadeInTime, enteringCombat)
   FadeInFrame(GwExperienceFrame, fadeInTime, enteringCombat)
 
@@ -902,16 +1007,27 @@ Addon.ShowUI = function(fadeInTime, enteringCombat)
   FadeInFrame(MinimapCluster, fadeInTime, enteringCombat)
   FadeInFrame(Minimap, fadeInTime, enteringCombat)
 
+  hideGameTooltip = false
   FadeInFrame(GameTooltip, fadeInTime, enteringCombat)
+
   FadeInFrame(AceGUITooltip, fadeInTime, enteringCombat)
   FadeInFrame(AceConfigDialogTooltip, fadeInTime, enteringCombat)
 
-  FadeInFrame(ChatFrame1, fadeInTime, enteringCombat)
-  FadeInFrame(ChatFrame1Tab, fadeInTime, enteringCombat)
-  FadeInFrame(ChatFrame1EditBox, fadeInTime, enteringCombat)
 
-  FadeInFrame(GwChatContainer1, fadeInTime, enteringCombat)
+  for i = 1, 12, 1 do
+    if _G["ChatFrame" .. i] then
+      FadeInFrame(_G["ChatFrame" .. i], fadeInTime, enteringCombat)
+      FadeInFrame(_G["ChatFrame" .. i .. "Tab"], fadeInTime, enteringCombat)
+      FadeInFrame(_G["ChatFrame" .. i .. "EditBox"], fadeInTime, enteringCombat)
+    end
 
+    if _G["GwChatContainer" .. i] then
+      FadeInFrame(_G["GwChatContainer" .. i], fadeInTime, enteringCombat)
+    end
+  end
+
+
+  FadeInFrame(EncounterBar, fadeInTime, enteringCombat)
 
 
   -- Cancel timers that may still be in progress.
@@ -944,10 +1060,7 @@ end
 
 
 
-
-
 -- TODO: Adopt new UI!
-
 
 -- Unlike party member frames, the raid member frames are not there from the start.
 -- So we have to do the onShow hook, when new ones arrive.
@@ -991,12 +1104,12 @@ end
 
 
 -- The CompactRaidFrameManager frame gets shown every time the raid roster changes.
--- While the UI is hidden, we have hide it again.
+-- While the UI is hidden, we have to hide it again.
 -- CompactRaidFrameManager:Hide() is disabled, if the addon SoloRaidFrame is used.
 -- But we are not taking care of this!
-CompactRaidFrameManager:HookScript("OnShow", function()
-  if Addon.uiHiddenTime ~= 0 and currentConfig.keepPartyRaidFrame == false then
-    FadeOutFrame(CompactRaidFrameManager, 0, false, currentConfig.UIParentAlpha)
-  end
-end)
+-- CompactRaidFrameManager:HookScript("OnShow", function()
+  -- if Addon.uiHiddenTime ~= 0 and currentConfig.keepPartyRaidFrame == false then
+    -- FadeOutFrame(CompactRaidFrameManager, 0, false, currentConfig.UIParentAlpha)
+  -- end
+-- end)
 
