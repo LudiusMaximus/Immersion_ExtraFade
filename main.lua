@@ -62,7 +62,12 @@ gossipCloseFrame:SetScript("OnEvent", function(_, event)
     end
 
   else
-    Addon.ShowUI(fadeInTime, false)
+    if ludius_UiHideModule.addonsHiddenStatus["DynamicCam"] then
+      -- Do not show UI.
+      ludius_UiHideModule.addonsHiddenStatus[folderName] = false
+    else
+      Addon.ShowUI(fadeInTime, false)
+    end
   end
 end)
 
@@ -74,12 +79,21 @@ local framerateWasShown = false
 
 -- If we somehow missed to show the frames again, we do it here!
 local emergencyFrame = CreateFrame("Frame")
-emergencyFrame:SetScript("onUpdate", function()
+emergencyFrame:SetScript("OnUpdate", function()
   -- Uncomment this for debugging.
-  -- if not Addon.uiHiddenTime then return end
-  if (not ImmersionFrame or not ImmersionFrame:IsShown()) and Addon.uiHiddenTime > 0 and Addon.uiHiddenTime < GetTime() and not cinematicRunning then
-    -- print("Emergency show", Addon.uiHiddenTime)
-    Addon.ShowUI(0, false)
+  -- if not ludius_UiHideModule.uiHiddenTime then return end
+  if (not ImmersionFrame or not ImmersionFrame:IsShown())
+      and ludius_UiHideModule.uiHiddenTime > 0
+      and ludius_UiHideModule.uiHiddenTime < GetTime()
+      and not cinematicRunning
+      then
+    -- print("Emergency show", ludius_UiHideModule.uiHiddenTime)
+    if ludius_UiHideModule.addonsHiddenStatus["DynamicCam"] then
+      -- Do not show UI.
+      ludius_UiHideModule.addonsHiddenStatus[folderName] = false
+    else
+      Addon.ShowUI(0, false)
+    end
   end
 end)
 
