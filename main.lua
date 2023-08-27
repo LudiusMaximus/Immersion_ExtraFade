@@ -103,13 +103,13 @@ toggleFramerateFrame:RegisterEvent("CINEMATIC_STOP")
 toggleFramerateFrame:SetScript("OnEvent", function(_, event)
   if event == "CINEMATIC_START" then
     cinematicRunning = true
-    if IEF_Config.hideFrameRateCinematic and FramerateLabel:IsVisible() then
+    if FramerateLabel and FramerateLabel:IsVisible() and IEF_Config.hideFrameRateCinematic then
       framerateWasShown = true
       ToggleFramerate()
     end
   else
     cinematicRunning = false
-    if not FramerateLabel:IsVisible() and framerateWasShown then
+    if FramerateLabel and not FramerateLabel:IsVisible() and framerateWasShown then
       framerateWasShown = false
       ToggleFramerate()
     end

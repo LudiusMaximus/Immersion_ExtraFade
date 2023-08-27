@@ -374,7 +374,13 @@ local function GameTooltipHider(self)
   end
 end
 
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, GameTooltipHider)
+
+
+if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+  TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, GameTooltipHider)
+else
+  GameTooltip:HookScript("OnTooltipSetItem", GameTooltipHider)
+end
 GameTooltip:HookScript("OnTooltipSetDefaultAnchor", GameTooltipHider)
 GameTooltip:HookScript("OnShow", GameTooltipHider)
 
@@ -1000,7 +1006,7 @@ end
 for i = 1, 4, 1 do
   if _G["PartyMemberFrame" .. i] then
     _G["PartyMemberFrame" .. i]:HookScript("OnShow", function()
-      if ludius_UiHideModule.uiHiddenTime == 0 then return end
+      if not currentConfig or ludius_UiHideModule.uiHiddenTime == 0 then return end
       FadeOutFrame(_G["PartyMemberFrame" .. i .. "NotPresentIcon"], 0, true, currentConfig.keepPartyRaidFrame and 1 or currentConfig.UIParentAlpha)
       FadeOutFrame(_G["PartyMemberFrame" .. i], 0, currentConfig.keepPartyRaidFrame, currentConfig.keepPartyRaidFrame and 1 or currentConfig.UIParentAlpha)
     end)
@@ -1012,7 +1018,8 @@ end
 -- The CompactRaidFrameContainer frame gets shown every time the raid roster changes.
 -- While the UI is hidden, we have to hide it again.
 CompactRaidFrameContainer:HookScript("OnShow", function()
-  if ludius_UiHideModule.uiHiddenTime ~= 0 and currentConfig.keepPartyRaidFrame == false then
+  if not currentConfig or ludius_UiHideModule.uiHiddenTime == 0 then return end
+  if currentConfig.keepPartyRaidFrame == false then
     FadeOutFrame(CompactRaidFrameContainer, 0, false, currentConfig.UIParentAlpha)
   end
 end)
