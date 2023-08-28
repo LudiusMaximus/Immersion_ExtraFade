@@ -12,6 +12,9 @@ function L:OnInitialize()
   self:InitializeOptions()
 end
 
+
+
+
 local gossipShowFrame = CreateFrame("Frame")
 gossipShowFrame:RegisterEvent("GOSSIP_SHOW")
 gossipShowFrame:RegisterEvent("QUEST_COMPLETE")
@@ -25,12 +28,26 @@ gossipShowFrame:SetScript("OnEvent", function(_, event)
 
 
   if IEF_Config.hideNpcPortrait then
-    ImmersionFrame.TalkBox.PortraitFrame:Hide()
-    ImmersionFrame.TalkBox.MainFrame.Model:Hide()
-    ImmersionFrame.TalkBox.MainFrame.Overlay:Hide()
+    
+    if ImmersionFrame.TalkBox.PortraitFrame:IsShown() then
+      ImmersionFrame.TalkBox.PortraitFrame:Hide()
+      ImmersionFrame.TalkBox.MainFrame.Model:Hide()
+      ImmersionFrame.TalkBox.MainFrame.Overlay:Hide()
 
-    -- /run print(ImmersionFrame.TalkBox.NameFrame.Name:GetPoint(1))
-    ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPLEFT", 24, -19)
+      -- /run print(ImmersionFrame.TalkBox.NameFrame.Name:GetPoint(1))
+      ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPLEFT", 24, -19)
+    end
+    
+  else
+  
+    if not ImmersionFrame.TalkBox.PortraitFrame:IsShown() then 
+      ImmersionFrame.TalkBox.PortraitFrame:Show()
+      ImmersionFrame.TalkBox.MainFrame.Model:Show()
+      ImmersionFrame.TalkBox.MainFrame.Overlay:Show()
+    
+      ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPRIGHT", 2, -19)
+    end
+    
   end
 
   -- Immersion always fades the UI to 0.

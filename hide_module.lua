@@ -307,29 +307,34 @@ local function SetMouseOverAlpha(frame)
   end
 end
 
-local function SetMouseOverFading(barManager)
 
+
+
+
+local function SetMouseOverFading(barManager)
   -- Have to do this for the single bars.
   -- Otherwise the text does not pop up any more when hovering over the bars.
+  -- It seems that OnEnter of a parent prevents the OnEnter of children to be triggered.
+  -- But only the OnEnter of single bars shows the bar text.
   for _, frame in pairs(barManager.bars) do
     if not frame.ludius_hooked then
       frame:HookScript("OnEnter", function()
-        barManager.ludius_mouseOver = true
-        SetMouseOverAlpha(barManager)
+        StatusTrackingBarManager.ludius_mouseOver = true
+        SetMouseOverAlpha(StatusTrackingBarManager)
       end)
       frame:HookScript("OnLeave", function()
-        barManager.ludius_mouseOver = false
-        SetMouseOverAlpha(barManager)
+        StatusTrackingBarManager.ludius_mouseOver = false
+        SetMouseOverAlpha(StatusTrackingBarManager)
       end)
       frame.ludius_hooked = true
     end
   end
 
 end
+SetMouseOverFading(MainStatusTrackingBarContainer)
+SetMouseOverFading(SecondaryStatusTrackingBarContainer)
 
 
--- Not working any more since 10.1.0... Find another way, but there are more important problems right now.
--- hooksecurefunc(StatusTrackingBarManager, "AddBarFromTemplate", SetMouseOverFading)
 
 
 
