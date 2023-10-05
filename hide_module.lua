@@ -867,6 +867,9 @@ Addon.HideUI = function(fadeOutTime, config)
 
   FadeOutFrame(GameTooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
   C_Timer.After(fadeOutTime, function() hideGameTooltip = (config.keepTooltip == false) end)
+  local shoppingTooltip1, shoppingTooltip2 = unpack(GameTooltip.shoppingTooltips)
+  FadeOutFrame(shoppingTooltip1, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
+  FadeOutFrame(shoppingTooltip2, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
 
   FadeOutFrame(AceGUITooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
   FadeOutFrame(AceConfigDialogTooltip, fadeOutTime, config.keepTooltip, config.keepTooltip and 1 or config.UIParentAlpha)
@@ -969,6 +972,9 @@ Addon.ShowUI = function(fadeInTime, enteringCombat)
 
   hideGameTooltip = false
   FadeInFrame(GameTooltip, fadeInTime, enteringCombat)
+  local shoppingTooltip1, shoppingTooltip2 = unpack(GameTooltip.shoppingTooltips)
+  FadeInFrame(shoppingTooltip1, fadeInTime, enteringCombat)
+  FadeInFrame(shoppingTooltip2, fadeInTime, enteringCombat)
 
   FadeInFrame(AceGUITooltip, fadeInTime, enteringCombat)
   FadeInFrame(AceConfigDialogTooltip, fadeInTime, enteringCombat)
