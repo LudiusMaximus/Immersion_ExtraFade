@@ -46,7 +46,7 @@ end
 
 
 local optionsTable = {
-  type = 'group',
+  type = "group",
   args = {
 
     info = {
@@ -57,7 +57,7 @@ local optionsTable = {
 
     keepAlertFrames = {
       order = 25,
-      type = 'toggle',
+      type = "toggle",
       name = "Keep Alert Frames",
       desc = "Check this to see the alert frames (e.g. Covenant Renown or when completing achievements) during Immersion's \"Hide Interface\"!",
       width = 2,
@@ -67,7 +67,7 @@ local optionsTable = {
 
     keepChatFrame = {
       order = 30,
-      type = 'toggle',
+      type = "toggle",
       name = "Keep Chat Frame",
       desc = "Check this to keep the chat frame during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
       width = 2,
@@ -77,7 +77,7 @@ local optionsTable = {
 
     keepPartyRaidFrame = {
       order = 37,
-      type = 'toggle',
+      type = "toggle",
       name = "Keep Party/Raid Frames",
       desc = "Check this to keep the Party/Raid frame during Immersion's \"Hide Interface\"!",
       width = 2,
@@ -89,7 +89,7 @@ local optionsTable = {
 
     keepTrackingBar = {
       order = 50,
-      type = 'toggle',
+      type = "toggle",
       name = "Keep Tracking Bars",
       desc = "Uncheck this to keep the tracking bars (XP, AP, Reputation) during Immersion's \"Hide Interface\"! This allows you to better track your rewards while handing in quests.",
       width = 2,
@@ -99,7 +99,7 @@ local optionsTable = {
 
     trackingBarAlpha = {
       order = 70,
-      type = 'range',
+      type = "range",
       name = "Tracking bar opacity during NPC intaraction",
       desc = "Only partially fade out the tracking bars. Hovering over them brings them to full opacity.",
       disabled = function() return not IEF_Config.keepTrackingBar end,
@@ -115,7 +115,7 @@ local optionsTable = {
 
     keepCustomFrames = {
       order = 74,
-      type = 'toggle',
+      type = "toggle",
       name = "Keep additional frames",
       desc = "The text box below allows you to define any frame you want to keep during NPC interaction.\n\nUse the console command /fstack to learn the names of frames.\n\nFor example, you may want to keep the buff icons next to the Minimap to be able to dismount during NPC interaction by clicking the appropriate icon.",
       width = 2,
@@ -157,7 +157,7 @@ local optionsTable = {
 
     hideNpcPortrait = {
       order = 90,
-      type = 'toggle',
+      type = "toggle",
       name = "Hide NPC Portrait in Immersion Frame",
       desc = "Only show quest text in the Immersion frame. This can help to focus on the NPCs in the game world while interacting with them.",
       width = 2,
@@ -169,7 +169,7 @@ local optionsTable = {
 
     hideFrameRate = {
       order = 100,
-      type = 'toggle',
+      type = "toggle",
       name = "Hide Frame Rate during NPC interaction",
       desc = "Check this to hide the frame rate during Immersion's \"Hide Interface\"!",
       width = 2,
@@ -178,7 +178,7 @@ local optionsTable = {
     },
     hideFrameRateCinematic = {
       order = 101,
-      type = 'toggle',
+      type = "toggle",
       name = "Hide Frame Rate during cinematics",
       desc = "Check this to hide the frame rate while ingame cinematics are playing!",
       width = 1.5,
@@ -190,7 +190,7 @@ local optionsTable = {
 
     restoreDefaults = {
       order = 120,
-      type = 'execute',
+      type = "execute",
       name = "Restore defaults",
       desc = "Restore settings to the preference of the developer.",
       width = "normal",
@@ -208,9 +208,7 @@ local optionsTable = {
 
 function L:InitializeSavedVariables()
 
-  if IEF_Config == nil then
-    IEF_Config = {}
-  end
+  IEF_Config = IEF_Config or {}
 
   -- Remove keys from previous versions.
   for k, v in pairs(IEF_Config) do
