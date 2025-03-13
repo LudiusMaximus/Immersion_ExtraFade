@@ -8,6 +8,7 @@
 ## SavedVariables: IEF_Config
 ## X-Curse-Project-ID: 362188
 ## X-WoWI-ID: 25504
+## X-Wago-ID: aNDmag6o
 ## X-Donate: PayPal:ludiusmaximus@gmail.com
 ## X-License: The MIT License (MIT)
 
