@@ -1,6 +1,7 @@
-## Interface: 110107
+## Interface: 110200
 ## Version: @project-version@
 ## Title: Immersion ExtraFade
+## IconTexture: Interface\AddOns\Immersion\Textures\Logo
 ## Author: LudiusMaximus
 ## Notes: Improves Immersion's UI fading while talking to NPCs.
 ## RequiredDeps: Immersion
