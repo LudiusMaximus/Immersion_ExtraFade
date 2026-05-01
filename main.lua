@@ -28,26 +28,26 @@ gossipShowFrame:SetScript("OnEvent", function(_, event)
 
 
   if IEF_Config.hideNpcPortrait then
-    
-    if ImmersionFrame.TalkBox.PortraitFrame:IsShown() then
+
       ImmersionFrame.TalkBox.PortraitFrame:Hide()
       ImmersionFrame.TalkBox.MainFrame.Model:Hide()
       ImmersionFrame.TalkBox.MainFrame.Overlay:Hide()
 
       -- /run print(ImmersionFrame.TalkBox.NameFrame.Name:GetPoint(1))
       ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPLEFT", 24, -19)
-    end
-    
+
+      -- /run print(ImmersionFrame.TalkBox.TextFrame.Text:GetPoint(1))
+      ImmersionFrame.TalkBox.TextFrame.Text:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.MainFrame.Model, "TOPLEFT", 8, -30)
+
   else
-  
-    if not ImmersionFrame.TalkBox.PortraitFrame:IsShown() then 
+
       ImmersionFrame.TalkBox.PortraitFrame:Show()
       ImmersionFrame.TalkBox.MainFrame.Model:Show()
       ImmersionFrame.TalkBox.MainFrame.Overlay:Show()
-    
+
       ImmersionFrame.TalkBox.NameFrame.Name:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.PortraitFrame.Portrait, "TOPRIGHT", 2, -19)
-    end
-    
+      ImmersionFrame.TalkBox.TextFrame.Text:SetPoint("TOPLEFT", ImmersionFrame.TalkBox.MainFrame.Model, "TOPRIGHT", 14, -30)
+
   end
 
   -- Immersion always fades the UI to 0.
